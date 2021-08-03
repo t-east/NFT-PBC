@@ -6,10 +6,9 @@ import (
 	"github.com/Nik-U/pbc"
 )
 
-func SetUp(userCount int, paramk1 int, paramk2 int) (tool.Params, tool.PrivKeys) {
-	var privKeys [][]byte
-	var pubKeys [][]byte
-	var privKeyByte tool.PrivKeys
+func SetUp(userCount int, paramk1 int, paramk2 int) (tool.Params, []tool.PrivKey) {
+	var pubKeys []tool.PubKey
+	var privKeys []tool.PrivKey
 	var para tool.Params
 	// The authority generates system parameters
 	params := pbc.GenerateA(uint32(paramk1), uint32(paramk2))
@@ -19,13 +18,14 @@ func SetUp(userCount int, paramk1 int, paramk2 int) (tool.Params, tool.PrivKeys)
 	for i := 0; i < userCount; i++ {
 		privKey := pairing.NewZr().Rand()
 		pubKey := pairing.NewG1().MulZn(g, privKey)
-		privKeys = append(privKeys, privKey.Bytes())
-		pubKeys = append(pubKeys, pubKey.Bytes())
+		pubKeyAndUser := tool.PubKey{PubKey: pubKey.Bytes(), UserID: i}
+		privKeyAndUser := tool.PrivKey{PrivKey: privKey.Bytes(), UserID: i}
+		privKeys = append(privKeys, privKeyAndUser)
+		pubKeys = append(pubKeys, pubKeyAndUser)
 	}
 	para.Pairing = params.String()
 	para.G = g.Bytes()
 	para.U = u.Bytes()
 	para.PubKeys = pubKeys
-	privKeyByte.PrivKeys = privKeys
-	return para, privKeyByte
+	return para, privKeys
 }

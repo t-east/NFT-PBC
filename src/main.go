@@ -4,83 +4,81 @@ import (
 	"pairing_test/src/SP"
 	"pairing_test/src/TPA"
 
-	//"pairing_test/src/SetUp"
 	"fmt"
 	"os"
+	"pairing_test/src/SetUp"
 
-	//"pairing_test/src/TPA"
 	"pairing_test/src/User"
 	"pairing_test/src/tool"
 )
 
 func main() {
+	//テスト用にファイルを初期化
 	err := os.Remove("../data/BN/FileIndexTable.json")
 	err = os.Remove("../data/SP/Storage.json")
-	err = os.Remove("../data/fileDataA.json")
-	err = os.Remove("../data/fileDataB.json")
-	err = os.Remove("../data/fileDataC.json")
+	err = os.Remove("../data/BN/FileIndexTable.json")
+	err = os.Remove("../data/BN/LogTable.json")
+	err = os.Remove("../data/BN/Para.json")
 	if err != nil {
 		fmt.Println(err)
 	}
+
+	//入力データを取得
 	dataList := tool.DataListGen()
-	logTable := []tool.Log{}
-	fileDataTable := []tool.FileData{}
-	var params tool.Params
-	var privKey tool.PrivKeys
-	var FileTable []tool.FileIndexTable
 
-	//params, privKey = SetUp.SetUp(4, 160, 512)
+	//SetUp Phase
+	userCount := 3
+	params, privKey := SetUp.SetUp(userCount, 160, 512)
+	tool.ParaToJson(params, privKey)
 	params, privKey = tool.InputPara()
-	//tool.ParaToJson(params, privKey)
+
+	var challenSs []tool.Chal
+	//Upload  Phase
 	for i := 0; i < len(dataList); i++ {
-		var fileData tool.FileData
-		FileTable = tool.InputFIT()
-		found := User.CheckDep(dataList[i], FileTable)
-		fileData.DataBlockNum = 10
-		fileData.FileName = dataList[i].DataName
-		fileData.UserName = dataList[i].Name
+		fmt.Printf("\n=====User%dが%sをアップロード======\n", dataList[i].ID, dataList[i].DataName)
+		var outsourceData tool.Storage
+		outsourceData.MetaData, outsourceData.File  = User.Upload(params, dataList[i], privKey[dataList[i].ID].PrivKey)
+		found := User.CheckDep(outsourceData)
+		//固有ファイル
 		if found == 0 {
-			fileData.MetaData, fileData.MData, fileData.MMData, fileData.DataBlockNum, fileData.SplitedData = User.Upload(params, dataList[i], privKey.PrivKeys[i])
-			hashedFile, err := tool.HashFile(dataList[i].DataName)
-			if err != nil {
-				return
-			}
-			User.OutSource(fileData.SplitedData, fileData.MetaData, dataList[i].DataName, dataList[i])
-			var users []string
-			users = append(users, dataList[i].Name)
-			validFile := tool.FileIndexTable{UserName: users, HashedFile: hashedFile}
-			tool.NewFIT(validFile)
-			FileTable = append(FileTable, validFile)
+			fmt.Printf("\n固有データなので，そのままアウトソース\n")
+			outsourceData := User.OutSource(outsourceData)
+			SP.SaveOutsourceData(outsourceData, dataList[i].ID)
+			//重複ファイル
 		} else {
-			fileData.MetaData, fileData.MData, fileData.MMData, fileData.DataBlockNum, fileData.SplitedData = User.Upload(params, dataList[i], privKey.PrivKeys[i])
+			fmt.Printf("\n重複しているデータなので重複排除処理を行う\n")
+			challenS := SP.DedupChallen(params, 10)
+			challenSs = append(challenSs,challenS)
 
-			challenS := SP.DedupChallen(params.Pairing, fileData.DataBlockNum)
-
-			proofS := User.DedupProofGen(privKey.PrivKeys[i], fileData, params, dataList[i], challenS)
-
-			DetupVerifyResult := SP.DedupVerify(fileData, params, params.PubKeys[i], proofS, challenS)
+			proofS, fitNum := User.DedupProofGen(outsourceData, params, challenS)
+			DetupVerifyResult := SP.DedupVerify(outsourceData, params, proofS, challenS, fitNum)
 			if DetupVerifyResult == 1 {
-				hashedFile, err := tool.HashFile(dataList[i].DataName)
-				if err != nil {
-					return
-				}
-				tool.AddFIT(fileData, hashedFile)
+				//fmt.Printf("=======DetupVerify===\n       OK\n")
+				tool.AddFIT(outsourceData, dataList[i].ID)
 			}
 		}
-		tool.FileDataToJson(fileData)
-		fileDataTable = append(fileDataTable, fileData)
 	}
 
-	storage := tool.ReadStorage()
-	for i := 0; i < len(storage); i++ {
-		challenT := User.AuditChallen(params.Pairing, fileDataTable[i].DataBlockNum)
-		proofT := SP.AuditProofGen(fileDataTable[i].DataBlockNum, storage[i], params, challenT)
-		log := TPA.AuditVerify(fileDataTable[i].DataBlockNum, params, params.PubKeys[i], storage[i], proofT, challenT)
-		if log.Result == 1 {
-			fmt.Print("OK")
-		}
-		logTable = append(logTable, log)
+	//Auditing Phase
+	//challenT := User.AuditChallen(params.Pairing)
+	proofT := SP.AuditProofGen(params, challenSs)
+	logs, er := TPA.AuditVerify(params, proofT, challenSs)
+	if er == 1 {
+		fmt.Printf("=====AuditVerify=====\n       OK\n=====================\n")
+	} else {
+		fmt.Printf("=====AuditVerify=====\n       NG\n=====================\n")
 	}
-	tool.LTToJson(logTable)
+	tool.LTToJson(logs)
+
+	//CheckLog Phase
+	for i := 0; i < 3; i++ {
+		fmt.Printf("=====User%dのCheckLog=========", i)
+		checkResult := User.CheckLog(i, params)
+		if checkResult == 1 {
+			fmt.Printf("\nUser%dのCheckLogフェーズ成功\n", i)
+		} else {
+			fmt.Printf("\nUser%dのCheckLogフェーズ失敗\n", i)
+		}
+	}
 
 }

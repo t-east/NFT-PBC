@@ -10,11 +10,13 @@ import (
 	"math/big"
 	"math/rand"
 	"os"
+	"reflect"
 
 	"github.com/Nik-U/pbc"
 )
 
 func HashChallen(n int, challen Chal, pairing *pbc.Pairing) ([]int, []*pbc.Element) {
+
 	k1Big := new(big.Int).SetBytes(challen.K1)
 	k2Big := new(big.Int).SetBytes(challen.K2)
 	nBig := big.NewInt(int64(n))
@@ -100,7 +102,7 @@ func SearchIndex(fileData DataList, fileTableData []FileIndexTable) (int, string
 		if err != nil {
 			err.Error()
 		}
-		if fileTableData[i].HashedFile == hashedFile {
+		if reflect.DeepEqual(fileTableData[i].HashedFile, hashedFile) {
 			return found, ""
 		} else {
 			found++
@@ -121,3 +123,16 @@ func ChallenGen(n int, pairing *pbc.Pairing) (int, *pbc.Element, *pbc.Element) {
 	return ck, k1, k2
 }
 
+func FileToMMData(file Storage)[][]byte{
+	para, _ := InputPara()
+	pairing, _ := pbc.NewPairingFromString(para.Pairing)
+	splitedFile, _ := SplitSlice(file.File, len(file.MetaData))
+	var MData [][]byte
+		for i := 0; i < len(splitedFile); i++ {
+			m := pairing.NewG1().SetFromHash(splitedFile[i])
+			mm := GetBinaryBySHA256(m.X().String())
+			M := pairing.NewG1().SetFromHash(mm)
+			MData = append(MData, M.Bytes())
+		}
+	return MData
+}

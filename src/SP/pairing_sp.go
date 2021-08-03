@@ -2,43 +2,63 @@ package SP
 
 import (
 	"pairing_test/src/tool"
+	"reflect"
 
 	"github.com/Nik-U/pbc"
 )
 
-func DedupChallen(sharedParams string, n int) tool.Chal {
-	pairing, _ := pbc.NewPairingFromString(sharedParams)
+func SaveOutsourceData(outsourceData tool.Storage, userId int) {
+	var Users []int
+	FileTable := tool.InputFIT()
+	Users = append(Users, userId)
+	hashedFile := tool.FileToMMData(outsourceData)
+	validFile := tool.FileIndexTable{UserID: Users, HashedFile: hashedFile}
+	tool.NewFIT(validFile)
+	FileTable = append(FileTable, validFile)
+}
+
+func DedupChallen(params tool.Params, n int) tool.Chal {
+	pairing, _ := pbc.NewPairingFromString(params.Pairing)
 	ck, ks1, ks2 := tool.ChallenGen(n, pairing)
 	challen := tool.Chal{C: ck, K1: ks1.Bytes(), K2: ks2.Bytes()}
 	return challen
 }
 
 // Alice generates a keypair and signs a message
-func DedupVerify(fileData tool.FileData, params tool.Params, pubKeyByte []byte, proofs []byte, challen tool.Chal) int {
+func DedupVerify(fileData tool.Storage, params tool.Params, proofs []byte, challen tool.Chal, fitNum int) int {
+	var storage tool.Storage
 	pairing, _ := pbc.NewPairingFromString(params.Pairing)
-	dataBlockNum := fileData.DataBlockNum
+	dataBlockNum := len(fileData.MetaData)
+	storages := tool.ReadStorage()
+	fit := tool.InputFIT()
+	for s := 0; s < len(storages); s++ {
+		hashedFile := tool.FileToMMData(storages[s])
+		if reflect.DeepEqual(hashedFile, fit[fitNum].HashedFile) {
+			storage = storages[s]
+		}
+	}
 	aTable, vTable := tool.HashChallen(dataBlockNum, challen, pairing)
+
 	g := pairing.NewG1().SetBytes(params.G)
-	pubKey := pairing.NewG1().SetBytes(pubKeyByte)
+	pubKey := pairing.NewG1().SetBytes(params.PubKeys[fit[fitNum].UserID[0]].PubKey)
 	u := pairing.NewG1().SetBytes(params.U)
 	proof := pairing.NewZr().SetBytes(proofs)
 
 	var MSum *pbc.Element
 	var metaSum *pbc.Element
-
-	for i:=0;i<challen.C;i++{
-		M := pairing.NewG1().SetBytes(fileData.MMData[aTable[i]])
-		meta := pairing.NewG1().SetBytes(fileData.MetaData[aTable[i]])
+	hashedFile := tool.FileToMMData(storage)
+	for i := 0; i < challen.C; i++ {
+		M := pairing.NewG1().SetBytes(hashedFile[aTable[i]])
+		meta := pairing.NewG1().SetBytes(storage.MetaData[aTable[i]])
 
 		if i == 0 {
 			metaSum = pairing.NewG1().PowZn(meta, vTable[i])
-			MSum = pairing.NewG1().PowZn(M,vTable[i])
+			MSum = pairing.NewG1().PowZn(M, vTable[i])
 		} else {
 			MSum.Mul(MSum, pairing.NewG1().PowZn(M, vTable[i]))
 			metaSum.Mul(metaSum, pairing.NewG1().PowZn(meta, vTable[i]))
 		}
 	}
-
 	uProof := pairing.NewG1().PowZn(u, proof)
 	right_hand := pairing.NewG1().Mul(uProof, MSum)
 	pairing_left := pairing.NewGT().Pair(metaSum, g)
@@ -50,26 +70,39 @@ func DedupVerify(fileData tool.FileData, params tool.Params, pubKeyByte []byte, 
 	return DetupVerifyResult
 }
 
-func AuditProofGen(n int, storage tool.Storage, params tool.Params, challen tool.Chal) [][]byte {
+func AuditProofGen(params tool.Params, challen []tool.Chal) []tool.ProofT {
 	var myuT *pbc.Element
 	var gammaT *pbc.Element
+	var proofTs []tool.ProofT
+	storages := tool.ReadStorage()
+	fit := tool.InputFIT()
 	pairing, _ := pbc.NewPairingFromString(params.Pairing)
-	dataBlockNum := n
-	aTable, vTable := tool.HashChallen(dataBlockNum, challen, pairing)
-	for i := 0; i < challen.C; i++ {
-		meta := pairing.NewG1().SetBytes(storage.MetaData[aTable[i]])
-		m := pairing.NewG1().SetFromHash(storage.File[aTable[i]])
-		if i == 0 {
-			myuT = pairing.NewZr().MulBig(vTable[i],m.X())
-			gammaT = pairing.NewG1().PowZn(meta, vTable[i])
-		} else {
-			myuT.Add(myuT, pairing.NewZr().MulBig(vTable[i],m.X()))
-			gammaT.Mul(gammaT, pairing.NewG1().PowZn(meta, vTable[i]))
+	for i := 0; i < len(fit); i++ {
+		for l:=0;l<len(storages);l++{
+			hashedFile := tool.FileToMMData(storages[l])
+			if reflect.DeepEqual(fit[i].HashedFile,hashedFile){
+				var proofT tool.ProofT
+				splitedFile, _ := tool.SplitSlice(storages[l].File, len(storages[l].MetaData))
+				aTable, vTable := tool.HashChallen(len(storages[l].MetaData), challen[i], pairing)
+		
+				
+				for j := 0; j < challen[i].C; j++ {
+					meta := pairing.NewG1().SetBytes(storages[l].MetaData[aTable[j]])
+					m := pairing.NewG1().SetFromHash(splitedFile[aTable[j]])
+					if j == 0 {
+						myuT = pairing.NewZr().MulBig(vTable[j], m.X())
+						gammaT = pairing.NewG1().PowZn(meta, vTable[j])
+					} else {
+						myuT = pairing.NewZr().Add(myuT, pairing.NewZr().MulBig(vTable[j], m.X()))
+						gammaT.Mul(gammaT, pairing.NewG1().PowZn(meta, vTable[j]))
+					}
+				}
+				proofT.Myu = myuT.Bytes()
+				proofT.Gamma = gammaT.Bytes()
+				proofT.ID = challen[i].ID
+				proofTs = append(proofTs, proofT)
+			}
 		}
 	}
-	var proofT [][]byte
-	proofT = append(proofT, myuT.Bytes())
-	proofT = append(proofT, gammaT.Bytes())
-	return proofT
+	return proofTs
 }
-

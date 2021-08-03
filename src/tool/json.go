@@ -6,17 +6,44 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"reflect"
 
 	"github.com/Nik-U/pbc"
 )
 
-func SaveData(file, metadata [][]byte, fileName string, inputFileString string){
+func SaveData(file Storage){
 	var NewStorage Storage
 
-	NewStorage = Storage{File: file, MetaData: metadata, FileName: fileName, HashedFile: inputFileString}
+	NewStorage = Storage{File: file.File, MetaData: file.MetaData}
 	
 	WriteStorage(NewStorage)
 }
+
+func GetFITInfoFromSP(storage Storage)int{
+	var fit []FileIndexTable
+	rawFIT, _ := ioutil.ReadFile("../data/BN/FileIndexTable.json")
+	json.Unmarshal(rawFIT, &fit)
+	for i, v := range fit {
+		hashedFile := FileToMMData(storage)
+		if reflect.DeepEqual(hashedFile, v.HashedFile) {
+			return i
+		}
+	}
+	return 0
+}
+
+func GetFITInfoFromUser(MData [][]byte)int{
+	var fit []FileIndexTable
+	rawFIT, _ := ioutil.ReadFile("../data/BN/FileIndexTable.json")
+	json.Unmarshal(rawFIT, &fit)
+	for i, v := range fit {
+		if reflect.DeepEqual(MData, v.HashedFile) {
+			return i
+		}
+	}
+	return 0
+}
+
 
 func ReadStorage()[]Storage{
 	var storages []Storage
@@ -25,17 +52,38 @@ func ReadStorage()[]Storage{
 	return storages
 }
 
-func IndexFromStorage(storages []Storage, fileTable FileIndexTable)int{ 
-	for i := 0; i < len(storages); i++ {
-		hashedFile, err := HashFile(storages[i].FileName)
-		if err != nil {
-			err.Error()
-		}
-		if fileTable.HashedFile == hashedFile {
-			return i
+func SesrchStorage(user int)[]Storage{
+	var storages []Storage
+	var fit []FileIndexTable
+	var resultTable []Storage
+	rawStorage, _ := ioutil.ReadFile("../data/SP/Storage.json")
+	rawFIT, _ := ioutil.ReadFile("../data/BN/FileIndexTable.json")
+	json.Unmarshal(rawStorage, &storages)
+	json.Unmarshal(rawFIT, &fit)
+	for f:=0; f < len(fit); f++{
+		for _, v := range fit[f].UserID {
+			if user == v {
+				for _, k := range storages {
+					hashedFile := FileToMMData(k)
+					if reflect.DeepEqual(fit[f].HashedFile, hashedFile){
+						resultTable = append(resultTable, k)
+					}
+				}
+			}
 		}
 	}
-	return 0
+	return resultTable
+}
+
+func PullFile() {
+
+}
+
+func ReadLogs()[]Log{
+	var logs []Log
+	rawLog, _ := ioutil.ReadFile("../data/BN/LogTable.json")
+	json.Unmarshal(rawLog, &logs)
+	return logs
 }
 
 func WriteStorage(newStorage Storage){
@@ -60,9 +108,11 @@ func NewFIT(data FileIndexTable) {
 	var fd []FileIndexTable
 	raw, err := ioutil.ReadFile("../data/BN/FileIndexTable.json")
 	if err != nil {
+		data.FileId = 0
 		fd = append(fd, data)
 	} else {
 		json.Unmarshal(raw, &fd)
+		data.FileId = len(fd)
 		fd = append(fd, data)
 	}
 	e, err := json.Marshal(fd)
@@ -74,14 +124,15 @@ func NewFIT(data FileIndexTable) {
 	ioutil.WriteFile("../data/BN/FileIndexTable.json", content, os.ModePerm)
 }
 
-func AddFIT(data FileData, hashedFile string) {
+func AddFIT(data Storage,userId int) {
 	var fd []FileIndexTable
 	raw, err := ioutil.ReadFile("../data/BN/FileIndexTable.json")
 	json.Unmarshal(raw, &fd)
+	hashedFile := FileToMMData(data)
 	for i:=0;i<len(fd);i++{
-		if fd[i].HashedFile == hashedFile{
+		if reflect.DeepEqual(fd[i].HashedFile, hashedFile){
 			index := i
-			fd[index].UserName = append(fd[index].UserName, data.UserName)
+			fd[index].UserID = append(fd[index].UserID, userId)
 		}
 	}
 
@@ -122,7 +173,7 @@ func LocalToStorage(data Storage) {
 	ioutil.WriteFile("../data/SP/Storage.json", content, os.ModePerm)
 }
 
-func ParaToJson(data Params, key PrivKeys) {
+func ParaToJson(data Params, key []PrivKey) {
 	e1, err := json.Marshal(data)
 	if err != nil {
 		fmt.Println(err)
@@ -158,9 +209,9 @@ func FileDataToJson(data FileData) {
 	ioutil.WriteFile("../data/fileData"+name+".json", content, os.ModePerm)
 }
 
-func InputPara() (Params, PrivKeys) {
+func InputPara() (Params, []PrivKey) {
 	var param Params
-	var privkeys PrivKeys
+	var privkeys []PrivKey
 	rawPara, _ := ioutil.ReadFile("../data/BN/Para.json")
 	rawKey, _ := ioutil.ReadFile("../data/PrivKey.json")
 	json.Unmarshal(rawPara, &param)
