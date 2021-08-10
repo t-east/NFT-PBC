@@ -1,0 +1,100 @@
+version: '2'
+
+networks:
+  basic:
+
+services: 
+  user_a:
+    build: ./
+    container_name: UserA
+    #restart: always
+    ports:
+      - 8080:8080
+    tty: true
+    working_dir: /home
+    command: /sh
+    volumes:
+      - ../:/home
+    networks:
+      - basic
+
+  user_b:
+    build: ./
+    container_name: UserB
+    #restart: always
+    ports:
+      - 8081:8081
+    tty: true
+    working_dir: /home
+    command: /sh
+    volumes:
+      - ../:/home
+    networks:
+      - basic
+
+  user_c:
+    build: ./
+    container_name: UserC
+    #restart: always
+    ports:
+      - 8082:8082
+    tty: true
+    working_dir: /home
+    command: /sh
+    volumes:
+      - ../:/home
+    networks:
+      - basic
+  
+  sp:
+    build: ./
+    container_name: SP
+    #restart: always
+    ports:
+      - 8083:8083
+    tty: true
+    working_dir: /home
+    command: /sh
+    volumes:
+      - ../:/home
+    networks:
+      - basic
+
+  tpa:
+    build: ./
+    container_name: TPA
+    #restart: always
+    ports:
+      - 8084:8084
+    tty: true
+    working_dir: /home
+    command: /sh
+    volumes:
+      - ../:/home
+    networks:
+      - basic
+
+  bn:
+    build: ../db
+    container_name: BN
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: go_database
+      MYSQL_USER: go_test
+      MYSQL_PASSWORD: password
+      TZ: 'Asia/Tokyo'
+    command: mysqld --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    tty: true
+    working_dir: /home
+    command: /sh
+    volumes:
+      - ../db/data:/var/lib/mysql
+      - ../db/my.cnf:/etc/mysql/conf.d/my.cnf
+    ports:
+      - 3306:3306
+    networks:
+      - basic
+  
+volumes:
+  db-data:
+    driver: local
