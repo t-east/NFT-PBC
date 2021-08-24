@@ -7,6 +7,7 @@ type FileIndexTable struct {
 }
 
 type Storage struct {
+	Id       int      `json:"id"`
 	File     []byte   `json:"file"`
 	MetaData [][]byte `json:"meta_data"`
 }

@@ -1,11 +1,11 @@
-FROM golang:1.16.2-alpine
+FROM golang:1.16.4-alpine
 
-ENV ROOT=/home
+ENV ROOT=/go/src/app
 ENV CGO_ENABLED 0
-WORKDIR ${ROOT}
+WORKDIR /work/
 
 RUN apk update && apk add git
-ADD ./go.mod ./go.sum ./
-RUN go mod download
 
-CMD ["go", "run", "main.go"]
+COPY go.mod go.sum ./
+RUN go mod download
+EXPOSE 8080

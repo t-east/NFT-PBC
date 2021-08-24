@@ -7,9 +7,32 @@ import (
 	"io/ioutil"
 	"os"
 	"reflect"
-
+	"github.com/jinzhu/gorm"
+  _ "github.com/jinzhu/gorm/dialects/mysql"
 	"github.com/Nik-U/pbc"
 )
+
+func MakeDb(){
+	db := gormConnect()
+	defer db.Close()
+
+  db.AutoMigrate(&Log{})
+}
+func gormConnect() *gorm.DB {
+  DBMS   := "mysql"
+	DBUser := "root"
+	DBPass := "root"
+	DBProtocol := "tcp(192.168.0.1:3306)"
+	DBName := "test"
+  connectTemplate := "%s:%s@%s/%s"
+  connect := fmt.Sprintf(connectTemplate, DBUser, DBPass, DBProtocol, DBName)
+  db,err := gorm.Open(DBMS, connect)
+
+  if err != nil {
+    panic(err.Error())
+  }
+  return db
+}
 
 func SaveData(file Storage){
 	var NewStorage Storage
@@ -153,6 +176,13 @@ func LTToJson(data []Log) {
 	}
 	content := []byte(e)
 	ioutil.WriteFile("../data/BN/LogTable.json", content, os.ModePerm)
+	// db := gormConnect()
+  // defer db.Close()
+	// for i:=0;i<len(data);i++{
+	// 	db.Create(&data[i])
+	// }
+	// eventsEx := []Log{}
+	// db.Find(&eventsEx, "file_id=?", 0)
 }
 
 func LocalToStorage(data Storage) {

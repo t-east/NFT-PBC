@@ -22,6 +22,7 @@ func main() {
 	if err != nil {
 		fmt.Println(err)
 	}
+	//tool.MakeDb()
 
 	//入力データを取得
 	dataList := tool.DataListGen()
