@@ -10,6 +10,7 @@ import (
 	"github.com/jinzhu/gorm"
   _ "github.com/jinzhu/gorm/dialects/mysql"
 	"github.com/Nik-U/pbc"
+	// "net/http"
 )
 
 func MakeDb(){
@@ -292,5 +293,39 @@ func JsonCheck(name string, params Params) {
 	}
 
 }
+
+//TODO トランザクションAPIを触る関数を実装
+// func RegisterOriginalData(){
+
+// }
+
+// func RegisterDedData(){
+
+// }
+
+// func GetFIT(ids){
+	
+// }
+
+// func RegisterParam(){
+	
+// }
+
+// func RegisterPubKey(pubke){
+
+// }
+
+// func GetParam(){
+	
+// }
+
+// func GetPubKey(pubke){
+
+// }
+
+// func RegisterLog(pubke){
+
+// }
+
 
 
