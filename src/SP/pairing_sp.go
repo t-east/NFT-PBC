@@ -3,8 +3,10 @@ package SP
 import (
 	"pairing_test/src/tool"
 	"reflect"
+	"fmt"
 
 	"github.com/Nik-U/pbc"
+	"pairing_test/src/ethereum/ethhandler"
 )
 
 func SaveOutsourceData(outsourceData tool.Storage, userId int) {
@@ -13,6 +15,15 @@ func SaveOutsourceData(outsourceData tool.Storage, userId int) {
 	Users = append(Users, userId)
 	hashedFile := tool.FileToMMData(outsourceData)
 	validFile := tool.FileIndexTable{UserID: Users, HashedFile: hashedFile}
+	conn, client := ethhandler.ConnectNetWork()
+	auth := ethhandler.AuthUser(client)
+	userAddress := ethhandler.StringToAddress("0xD7bdEe86c43402d55F28397603fB38D399D50314")
+	reply, err := conn.RegisterOriginalData(auth, validFile.HashedFile, userAddress)
+	if err != nil{
+		fmt.Println(err)
+	}else{
+		fmt.Println(reply)
+	}
 	tool.NewFIT(validFile)
 	FileTable = append(FileTable, validFile)
 }
