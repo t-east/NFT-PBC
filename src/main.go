@@ -12,6 +12,14 @@ import (
 	"pairing_test/src/tool"
 )
 
+// ここの２つの変数を修正して実行する
+const (
+	// ganacheの起動したときのポートを指定 (8545 か 7545)
+	GANACHE_PORT = "8545"
+	// 先ほど作成したプログラムから取得した。　CONTRACT_ADDRESSを取得
+	CONTRACT_ADDRESS = ""
+)
+
 func main() {
 	//テスト用にファイルを初期化
 	err := os.Remove("../data/BN/FileIndexTable.json")
