@@ -31,12 +31,12 @@ contract FileIndexTable {
 
     // 登録ユーザがすでに登録されているか
     require(
-      FIT[fitId].owner[_userAddress],
+      FIT[fitId].owner[_userAddress] == false,
       "This user has already registered as the owner"
     );
     // すでに登録済みのデータであれば不適切
     require(
-      FIT[fitId].isRegistered,
+      FIT[fitId].isRegistered == false,
       "This user has be already registered as the owner"
     );
 
@@ -60,6 +60,21 @@ contract FileIndexTable {
       "This data has not be registered"
     );
     FIT[_fitId].owner[_userAddress] = true;
+  }
+
+  // dev用 FITのownerを削除
+  function deleteData(bytes[] memory _fileData, address _userAddress) public {
+
+    // ハッシュファイルからfitIDを生成
+    uint256 fitId = uint256(keccak256(_fileData[0]));
+
+    // 登録ユーザでは無くす
+    FIT[fitId].owner[_userAddress] = false;
+
+    // 登録されていないデータとして扱う
+    FIT[fitId].isRegistered = false;
+
+    FIT[fitId].hashedFile = _fileData;
   }
 
   //FileIndexTableから指定したIDのものを取得
