@@ -1,10 +1,29 @@
-package TPA
+
+package handler
 
 import (
-	"pairing_test/src/tool"
-	"fmt"
+    "net/http"
+
+    "github.com/gin-gonic/gin"
+	// "encoding/binary"
+	// "reflect"
+	"pairing_test/src/TPA/structure"
+
 	"github.com/Nik-U/pbc"
 )
+
+func GetPara(para *structure.Params) gin.HandlerFunc {
+    return func(c *gin.Context) {
+		params := pbc.GenerateA(uint32(160), uint32(512))
+		pairing := params.NewPairing()
+		g := pairing.NewG1().Rand()
+		u := pairing.NewG1().Rand()
+		para.Pairing = params.String()
+		para.G = g.Bytes()
+		para.U = u.Bytes()
+		c.JSON(http.StatusOK, para)
+	}
+}
 
 // 監査検証
 func AuditVerify(params tool.Params, proofTByte []tool.ProofT, challen []tool.Chal) ([]tool.Log, int){
