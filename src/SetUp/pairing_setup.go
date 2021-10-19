@@ -7,26 +7,27 @@ import (
 )
 
 func SetUp(userCount int, paramk1 int, paramk2 int) (tool.Params, []tool.PrivKey) {
-	var pubKeys []tool.PubKey
-	var privKeys []tool.PrivKey
 	var para tool.Params
 	// The authority generates system parameters
 	params := pbc.GenerateA(uint32(paramk1), uint32(paramk2))
 	pairing := params.NewPairing()
 	g := pairing.NewG1().Rand()
 	u := pairing.NewG1().Rand()
-	for i := 0; i < userCount; i++ {
-		privKey := pairing.NewZr().Rand()
-		pubKey := pairing.NewG1().MulZn(g, privKey)
-		pubKeyAndUser := tool.PubKey{PubKey: pubKey.Bytes(), UserID: i}
-		privKeyAndUser := tool.PrivKey{PrivKey: privKey.Bytes(), UserID: i}
-		privKeys = append(privKeys, privKeyAndUser)
-		pubKeys = append(pubKeys, pubKeyAndUser)
-	}
 	para.Pairing = params.String()
 	para.G = g.Bytes()
 	para.U = u.Bytes()
-	para.PubKeys = pubKeys
 	// TODO:ブロックチェーンにParaを保存
-	return para, privKeys
+	return para
+}
+
+func RegisterUser(id string, para tool.Params) tool.UserKey {
+	var userKey tool.UserKey
+	pairing, _ := pbc.NewPairingFromString(para.Pairing)
+	privKey := pairing.NewZr().Rand()
+	g := pairing.NewG1().SetBytes(para.G)
+	pubKey := pairing.NewG1().MulZn(g, privKey)
+	userKey.ID = id
+	userKey.PubKey = pubKey.Bytes()
+	userKey.PrivKey = privKey.Bytes()
+	return userKey
 }
