@@ -21,6 +21,7 @@ type DataList struct {
 	Name     string `json:"name"`
 	ID       int    `json:"id"`
 	DataName string `json:"data_name"`
+	DataFile []byte `json:"data_file"`
 }
 
 type Log struct {
@@ -32,6 +33,12 @@ type Log struct {
 
 type PubKey struct {
 	PubKey []byte `json:"public_keys"`
+	UserID int    `json:"user_id"`
+}
+
+type UserKey struct {
+	PubKey []byte `json:"public_key"`
+	PrivKey []byte `json:"private_key"`
 	UserID int    `json:"user_id"`
 }
 
