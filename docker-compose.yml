@@ -1,7 +1,50 @@
-version: '3' # composeファイルのバーション指定
+
+#
+# Copyright IBM Corp All Rights Reserved
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+version: '3'
+networks:
+  basic:
+
 services:
-  app:
+  web:
     build: .
     tty: true
+    command: sh
     volumes:
-      - .:/work
+      - .:/go/src/app
+    ports:
+      - 4000:4000
+    networks:
+      - basic
+
+  # webp:
+  #     container_name: web
+  #     build: "./system_mock"
+  #     tty: true
+  #     working_dir: /home
+  #     command: /bin/bash
+  #     volumes:
+  #     - /var/run/:/host/var/run
+  #     - ./mixnet:/home
+  #     ports:
+  #         - 5050:5050
+  #     expose:
+  #         - "5050"
+  #     networks:
+  #         - basic
+  
+  # nginx:
+  #     container_name: nginx
+  #     build: ./nginx
+  #     volumes:
+  #         - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+  #     ports:
+  #         - 80:80
+  #     restart: always 
+  #     depends_on:
+  #         - web
+  #     networks:
+  #         - basic
