@@ -9,14 +9,36 @@ networks:
   basic:
 
 services:
-  web:
+  user:
     build: .
     tty: true
     command: sh
     volumes:
-      - .:/go/src/app
+      - .:/app
     ports:
       - 4000:4000
+    networks:
+      - basic
+  
+  sp:
+    build: .
+    tty: true
+    command: sh
+    volumes:
+      - .:/app
+    ports:
+      - 4001:4001
+    networks:
+      - basic
+
+  tpa:
+    build: .
+    tty: true
+    command: sh
+    volumes:
+      - .:/app
+    ports:
+      - 4002:4002
     networks:
       - basic
 
