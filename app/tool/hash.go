@@ -6,11 +6,9 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"log"
 	"math/big"
 	"math/rand"
 	"os"
-	"reflect"
 
 	"github.com/Nik-U/pbc"
 )
@@ -33,19 +31,6 @@ func HashChallen(n int, challen Chal, pairing *pbc.Pairing) ([]int, []*pbc.Eleme
 		vTable = append(vTable, ik2Big)
 	}
 	return aTable, vTable
-}
-
-func OutPutToFile(fileName string, OutPutData []FileIndexTable) {
-	f, err := os.Create(fileName)
-	if err != nil {
-		log.Fatal("Couldn't open file")
-	}
-	defer f.Close()
-
-	err = binary.Write(f, binary.LittleEndian, OutPutData)
-	if err != nil {
-		log.Fatal("Write failed")
-	}
 }
 
 func ReadBinaryFile(filename string, order binary.ByteOrder) []byte {
@@ -92,23 +77,6 @@ func SplitSlice(list []byte, size int) ([][]byte, error) {
 		}
 	}
 	return result, nil
-}
-
-//証明したいデータとFITを紐つける関数
-func SearchIndex(fileData DataList, fileTableData []FileIndexTable) (int, string) {
-	found := 0
-	for i := 0; i < len(fileTableData); i++ {
-		hashedFile, err := HashFile(fileData.DataName)
-		if err != nil {
-			err.Error()
-		}
-		if reflect.DeepEqual(fileTableData[i].HashedFile, hashedFile) {
-			return found, ""
-		} else {
-			found++
-		}
-	}
-	return 0, "error"
 }
 
 func GetBinaryBySHA256(s string) []byte {

@@ -27,5 +27,6 @@ func SetUp(userCount int, paramk1 int, paramk2 int) (tool.Params, []tool.PrivKey
 	para.G = g.Bytes()
 	para.U = u.Bytes()
 	para.PubKeys = pubKeys
+	// TODO:ブロックチェーンにParaを保存
 	return para, privKeys
 }

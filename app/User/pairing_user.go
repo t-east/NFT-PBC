@@ -8,7 +8,7 @@ import (
 	"github.com/Nik-U/pbc"
 )
 
-// Alice generates a keypair and signs a message
+// メタデータ生成
 func Upload(para tool.Params, inputData tool.DataList, privKeyByte []byte) ([][]byte, []byte) {
 	pairing, _ := pbc.NewPairingFromString(para.Pairing)
 	u := pairing.NewG1().SetBytes(para.U)
@@ -44,34 +44,7 @@ func OutSource(file tool.Storage) tool.Storage {
 	return file
 }
 
-func DedupProofGen(fileData tool.Storage, params tool.Params, challen tool.Chal) ([]byte, int) {
-	pairing, _ := pbc.NewPairingFromString(params.Pairing)
-	var mData []*pbc.Element
-	var MData [][]byte
-	dataBlockNum := len(fileData.MetaData)
-	splitedFile, _ := tool.SplitSlice(fileData.File, dataBlockNum)
-	for i := 0; i < len(splitedFile); i++ {
-		m := pairing.NewG1().SetFromHash(splitedFile[i])
-		mm := tool.GetBinaryBySHA256(m.X().String())
-		M := pairing.NewG1().SetFromHash(mm)
-		mData = append(mData, m)
-		MData = append(MData, M.Bytes())
-	}
-	fitNum := tool.GetFITInfoFromUser(MData)
-	aTable, vTable := tool.HashChallen(dataBlockNum, challen, pairing)
-
-	var proofs *pbc.Element
-	for j := 0; j < challen.C; j++ {
-		if j == 0 {
-			proofs = pairing.NewZr().MulBig(vTable[j], mData[aTable[j]].X())
-		} else {
-			proofs = pairing.NewZr().Add(proofs, pairing.NewZr().MulBig(vTable[j], mData[aTable[j]].X()))
-		}
-	}
-
-	return proofs.Bytes(), fitNum
-}
-
+// 監査チャレンジ作成
 func AuditChallen(sharedParams string) []tool.Chal {
 	fit := tool.InputFIT()
 	var challens []tool.Chal
@@ -96,6 +69,7 @@ func CheckDep(outSourceData tool.Storage) int {
 	return found
 }
 
+//　監査ログ確認
 func CheckLog(user int, params tool.Params) int {
 	result := 0
 	fit := tool.InputFIT()

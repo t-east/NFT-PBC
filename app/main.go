@@ -1,6 +1,9 @@
 package main
 
 import (
+    "log"
+    "net/http"
+    "net/http/httputil"
 	"pairing_test/src/SP"
 	"pairing_test/src/TPA"
 
@@ -12,15 +15,7 @@ import (
 	"pairing_test/src/tool"
 )
 
-// ここの２つの変数を修正して実行する
-const (
-	// ganacheの起動したときのポートを指定 (8545 か 7545)
-	GANACHE_PORT = "8545"
-	// 先ほど作成したプログラムから取得した。　CONTRACT_ADDRESSを取得
-	CONTRACT_ADDRESS = ""
-)
-
-func main() {
+func stream() {
 	//テスト用にファイルを初期化
 	err := os.Remove("../data/BN/FileIndexTable.json")
 	err = os.Remove("../data/SP/Storage.json")
@@ -30,53 +25,41 @@ func main() {
 	if err != nil {
 		fmt.Println(err)
 	}
-	//tool.MakeDb()
 
 	//入力データを取得
 	dataList := tool.DataListGen()
 
 	//SetUp Phase
+	// 秘密鍵やParaの設定
 	userCount := 3
 	params, privKey := SetUp.SetUp(userCount, 160, 512)
 	tool.ParaToJson(params, privKey)
 	params, privKey = tool.InputPara()
 
-	var challenSs []tool.Chal
-	//Upload  Phase
+	//ストレージにファイルを保存，作品ログをブロックチェーンに追加
 	for i := 0; i < len(dataList); i++ {
 		fmt.Printf("\n=====User%dが%sをアップロード======\n", dataList[i].ID, dataList[i].DataName)
 		var outsourceData tool.Storage
 		outsourceData.MetaData, outsourceData.File  = User.Upload(params, dataList[i], privKey[dataList[i].ID].PrivKey)
 		found := User.CheckDep(outsourceData)
-		//固有ファイル
 		if found == 0 {
-			fmt.Printf("\n固有データなので，そのままアウトソース\n")
+			fmt.Printf("\n作品データをアウトソース")
+			fmt.Printf("\nブロックチェーンにログを追加\n")
 			outsourceData := User.OutSource(outsourceData)
 			SP.SaveOutsourceData(outsourceData, dataList[i].ID)
-			//重複ファイル
-		} else {
-			fmt.Printf("\n重複しているデータなので重複排除処理を行う\n")
-			challenS := SP.DedupChallen(params, 10)
-			challenSs = append(challenSs,challenS)
-
-			proofS, fitNum := User.DedupProofGen(outsourceData, params, challenS)
-			DetupVerifyResult := SP.DedupVerify(outsourceData, params, proofS, challenS, fitNum)
-			if DetupVerifyResult == 1 {
-				//fmt.Printf("=======DetupVerify===\n       OK\n")
-				tool.AddFIT(outsourceData, dataList[i].ID)
-			}
 		}
 	}
 
 	//Auditing Phase
-	//challenT := User.AuditChallen(params.Pairing)
-	proofT := SP.AuditProofGen(params, challenSs)
-	logs, er := TPA.AuditVerify(params, proofT, challenSs)
+	challenT := User.AuditChallen(params.Pairing)
+	proofT := SP.AuditProofGen(params, challenT)
+	logs, er := TPA.AuditVerify(params, proofT, challenT)
 	if er == 1 {
 		fmt.Printf("=====AuditVerify=====\n       OK\n=====================\n")
 	} else {
 		fmt.Printf("=====AuditVerify=====\n       NG\n=====================\n")
 	}
+	//TODO: 監査ログをブロックチェーンに追加
 	tool.LTToJson(logs)
 
 	//CheckLog Phase
@@ -89,5 +72,22 @@ func main() {
 			fmt.Printf("\nUser%dのCheckLogフェーズ失敗\n", i)
 		}
 	}
+}
 
+func handler(w http.ResponseWriter, r *http.Request) {
+    dump, err := httputil.DumpRequest(r, true)
+    if err != nil {
+        http.Error(w, fmt.Sprint(err), http.StatusInternalServerError)
+        return
+    }
+    fmt.Println(string(dump))
+    fmt.Fprintf(w, "<html><body>hello</body></html>\n")
+}
+
+func main() {
+    var httpServer http.Server
+    http.HandleFunc("/", handler)
+    log.Println("start http listening :18888")
+    httpServer.Addr = ":18888"
+    log.Println(httpServer.ListenAndServe())
 }

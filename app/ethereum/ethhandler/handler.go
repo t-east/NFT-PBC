@@ -18,7 +18,7 @@ const (
 	// ganacheの起動したときのポートを指定 (8545 か 7545)
 	GANACHE_PORT = "8545"
 	// 先ほど作成したプログラムから取得した。　CONTRACT_ADDRESSを取得
-	CONTRACT_ADDRESS = "0xADEb748E7BbB603f8Bc6dF32AB726d3153Cf58E3"
+	CONTRACT_ADDRESS = "4A650123144bb9946c528667cfAea47190488B9a"
 )
 
 func ConnectNetWork() (*contracts.Contracts, *ethclient.Client) {
@@ -34,7 +34,7 @@ func ConnectNetWork() (*contracts.Contracts, *ethclient.Client) {
 }
 
 func AuthUser(client *ethclient.Client) *bind.TransactOpts {
-	privateKey, err := crypto.HexToECDSA("5f4a70a398a494d4ec34c8fd2e8986c306fc3f37ebe228cb2b273c70fe16ed7f")
+	privateKey, err := crypto.HexToECDSA("267ec15fde345852730db765cab9ae926d5741875ebfe7e0e336e40fd5c80a1b")
     if err != nil {
         log.Fatal(err)
     }
@@ -63,10 +63,11 @@ func AuthUser(client *ethclient.Client) *bind.TransactOpts {
 }
 
 func Set(auth *bind.TransactOpts, conn *contracts.Contracts,message string) {
-	_, err := conn.Set(auth, message)
+	reply, err := conn.Set(auth, message)
 	if err != nil {
 		fmt.Println(err)
 	}
+	fmt.Print(reply)
 }
 
 func Get(conn *contracts.Contracts) {

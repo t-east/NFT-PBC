@@ -6,7 +6,7 @@ import (
 	"github.com/Nik-U/pbc"
 )
 
-// Alice generates a keypair and signs a message
+// 監査検証
 func AuditVerify(params tool.Params, proofTByte []tool.ProofT, challen []tool.Chal) ([]tool.Log, int){
 	var log tool.Log
 	fit := tool.InputFIT()

@@ -15,8 +15,8 @@ import (
 	"pairing_test/src/ethereum/contracts"
 )
 
-const PRIVATE_KEY = "5f4a70a398a494d4ec34c8fd2e8986c306fc3f37ebe228cb2b273c70fe16ed7f"
-const SP_ADDRESS = "0xeAAA2c6F420aaC6a55821F965d1BD75dc79f38f6"
+const PRIVATE_KEY = "cbbbd2c5bc4678a8af9a7ce616fe77dd9932214c316f68ab062d6c2e1c53a5c4"
+const SP_ADDRESS = "0x4c4b528C59bc4fD7918963F843C68c053D94728A"
 
 func main() {
 	client, err := ethclient.Dial("http://127.0.0.1:8545")

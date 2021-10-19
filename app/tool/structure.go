@@ -1,13 +1,7 @@
 package tool
 
-type FileIndexTable struct {
-	UserID     []int    `json:"user_id"`
-	HashedFile [][]byte `json:"hashed_file"`
-	FileId     int      `json:"file_id"`
-}
-
 type Storage struct {
-	Id       int      `json:"id"`
+	artId       int      `json:"art_id"`
 	File     []byte   `json:"file"`
 	MetaData [][]byte `json:"meta_data"`
 }
@@ -16,11 +10,9 @@ type Chal struct {
 	C  int    `json:"ck"`
 	K1 []byte `json:"k1"`
 	K2 []byte `json:"k2"`
-	ID int    `json:"id"`
 }
 
 type ProofT struct {
-	ID    int    `json:"id"`
 	Myu   []byte `json:"myu"`
 	Gamma []byte `json:"gamma"`
 }
@@ -35,7 +27,7 @@ type Log struct {
 	Challen Chal   `json:"challenge"`
 	Result  int    `json:"result"`
 	Proof   ProofT `json:"proof"`
-	FileId  int    `json:"file_id"`
+	artId  int    `json:"art_id"`
 }
 
 type PubKey struct {
@@ -71,7 +63,6 @@ type FileData struct {
 }
 
 type OutsourceData struct {
-	UserName string   `json:"user_name"`
 	UserID   int      `json:"user_id"`
 	FileName string   `json:"file_name"`
 	MetaData [][]byte `json:"meta_data"`
@@ -80,10 +71,10 @@ type OutsourceData struct {
 
 func DataListGen() []DataList {
 	dataList := []DataList{}
-	dataList = append(dataList, DataList{Name: "A", ID: 0, DataName: "inputData/linux_logo.jpg"})
-	dataList = append(dataList, DataList{Name: "C", ID: 2, DataName: "inputData/testfile"})
-	dataList = append(dataList, DataList{Name: "A", ID: 0, DataName: "inputData/testfile"})
-	dataList = append(dataList, DataList{Name: "B", ID: 1, DataName: "inputData/linux_logo.jpg"})
+	dataList = append(dataList, DataList{ID: 0, DataName: "inputData/linux_logo.jpg"})
+	dataList = append(dataList, DataList{ID: 2, DataName: "inputData/testfile"})
+	dataList = append(dataList, DataList{ID: 0, DataName: "inputData/testfile"})
+	dataList = append(dataList, DataList{ID: 1, DataName: "inputData/linux_logo.jpg"})
 	return dataList
 }
 
