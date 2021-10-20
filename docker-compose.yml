@@ -20,43 +20,27 @@ services:
     networks:
       - basic
   
-  sp:
-    build: .
-    tty: true
-    command: sh
-    volumes:
-      - .:/app
-    ports:
-      - 4001:4001
-    networks:
-      - basic
+  # sp:
+  #   build: .
+  #   tty: true
+  #   command: sh
+  #   volumes:
+  #     - .:/app
+  #   ports:
+  #     - 4001:4001
+  #   networks:
+  #     - basic
 
-  tpa:
-    build: .
-    tty: true
-    command: sh
-    volumes:
-      - .:/app
-    ports:
-      - 4002:4002
-    networks:
-      - basic
-
-  # webp:
-  #     container_name: web
-  #     build: "./system_mock"
-  #     tty: true
-  #     working_dir: /home
-  #     command: /bin/bash
-  #     volumes:
-  #     - /var/run/:/host/var/run
-  #     - ./mixnet:/home
-  #     ports:
-  #         - 5050:5050
-  #     expose:
-  #         - "5050"
-  #     networks:
-  #         - basic
+  # tpa:
+  #   build: .
+  #   tty: true
+  #   command: sh
+  #   volumes:
+  #     - .:/app
+  #   ports:
+  #     - 4002:4002
+  #   networks:
+  #     - basic
   
   # nginx:
   #     container_name: nginx
