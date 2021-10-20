@@ -3,12 +3,11 @@ package handler
 
 import (
     "net/http"
+	"fmt"
 
     "github.com/gin-gonic/gin"
-	// "encoding/binary"
-	// "pairing_test/src/tool"
-	// "reflect"
 	"pairing_test/src/User/structure"
+	"pairing_test/src/ethereum/ethhandler"
 
 	"github.com/Nik-U/pbc"
 )
@@ -22,6 +21,7 @@ func GetPara(para *structure.Params) gin.HandlerFunc {
 		para.Pairing = params.String()
 		para.G = g.Bytes()
 		para.U = u.Bytes()
+		c.Header("Access-Control-Allow-Origin", "*")
 		c.JSON(http.StatusOK, para)
 	}
 }
@@ -31,8 +31,9 @@ func GetPara(para *structure.Params) gin.HandlerFunc {
 // }
 
 // ユーザ登録
-func KeyGenPost(para *structure.Params, user *structure.User) gin.HandlerFunc {
+func KeyGen(para *structure.Params, user *structure.User) gin.HandlerFunc {
     return func(c *gin.Context) {
+		c.Header("Access-Control-Allow-Origin", "*")
 		pairing, _ := pbc.NewPairingFromString(para.Pairing)
 		privKey := pairing.NewZr().Rand()
 		g := pairing.NewG1().SetBytes(para.G)
@@ -40,6 +41,20 @@ func KeyGenPost(para *structure.Params, user *structure.User) gin.HandlerFunc {
 		user.PubKey = pubKey.Bytes()
 		user.PrivKey = privKey.Bytes()
 		//RegisterPubKey(user, アドレス)
+        c.JSON(http.StatusOK, user)
+    }
+}
+
+type EthPrivKey struct {
+	PrivKey string `json:"eth_privkey"`
+}
+
+func GetAddress(user *structure.User) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Header("Access-Control-Allow-Origin", "*")
+		var requestBody EthPrivKey
+		c.BindJSON(&requestBody)
+		user.Address = ethhandler.GetUserAddress(requestBody.PrivKey).String()
         c.JSON(http.StatusOK, user)
     }
 }
@@ -79,16 +94,16 @@ func KeyGenPost(para *structure.Params, user *structure.User) gin.HandlerFunc {
 // }
 
 // 監査チャレンジ作成
-func AuditChallen(para *structure.Params, artIds *structure.ArtIds) []tool.Chal {
-	var challens []tool.Chal
-	for i := 0; i < len(fit); i++ {
-		pairing, _ := pbc.NewPairingFromString(sharedParams)
-		ck, kt1, kt2 := tool.ChallenGen(len(fit[i].HashedFile), pairing)
-		challen := tool.Chal{ID: fit[i].FileId,C: ck, K1: kt1.Bytes(), K2: kt2.Bytes()}
-		challens = append(challens, challen)
-	}
-	return challens
-}
+// func AuditChallen(para *structure.Params, artIds *structure.ArtIds) []tool.Chal {
+// 	var challens structure.Chal
+// 	for i := 0; i < len(fit); i++ {
+// 		pairing, _ := pbc.NewPairingFromString(sharedParams)
+// 		ck, kt1, kt2 := tool.ChallenGen(len(fit[i].HashedFile), pairing)
+// 		challen := tool.Chal{ID: fit[i].FileId,C: ck, K1: kt1.Bytes(), K2: kt2.Bytes()}
+// 		challens = append(challens, challen)
+// 	}
+// 	return challens
+// }
 
 // func CheckDep(outSourceData tool.Storage) int {
 // 	found := 0
@@ -154,25 +169,28 @@ func AuditChallen(para *structure.Params, artIds *structure.ArtIds) []tool.Chal 
 // 	return result
 // }
 
-type User struct {
-	PubKey []byte `json:"public_key"`
-	PrivKey []byte `json:"private_key"`
+type UserInfo struct {
 	UserID string    `json:"user_id"`
 	Address string    `json:"address"`
 }
 
 func UserGet(user *structure.User) gin.HandlerFunc {
     return func(c *gin.Context) {
+		c.Header("Access-Control-Allow-Origin", "*")
         c.JSON(http.StatusOK, user)
     }
 }
 
 func UserPost(user *structure.User) gin.HandlerFunc {
     return func(c *gin.Context) {
-		requestBody := structure.User{}
-        c.Bind(&requestBody)
+		requestBody := UserInfo{}
+		c.Bind(&requestBody)
+		user.UserID = requestBody.UserID
+		user.Address = requestBody.Address 
+		fmt.Print(requestBody)    
         //user.SendUserId()
-        c.Status(http.StatusNoContent)
+		c.Header("Access-Control-Allow-Origin", "*")
+        c.JSON(http.StatusOK, requestBody)
     }
 }
 

@@ -33,8 +33,22 @@ func ConnectNetWork() (*contracts.Contracts, *ethclient.Client) {
 	return conn, client
 }
 
-func AuthUser(client *ethclient.Client) *bind.TransactOpts {
-	privateKey, err := crypto.HexToECDSA("267ec15fde345852730db765cab9ae926d5741875ebfe7e0e336e40fd5c80a1b")
+func GetUserAddress(privKey string) common.Address {
+	privateKey, err := crypto.HexToECDSA(privKey)
+    if err != nil {
+        log.Fatal(err)
+    }
+    publicKey := privateKey.Public()
+    publicKeyECDSA, ok := publicKey.(*ecdsa.PublicKey)
+    if !ok {
+        log.Fatal("error casting public key to ECDSA")
+    }
+    Address := crypto.PubkeyToAddress(*publicKeyECDSA) 
+	return Address
+}
+
+func AuthUser(client *ethclient.Client, privKey string) *bind.TransactOpts {
+	privateKey, err := crypto.HexToECDSA(privKey)
     if err != nil {
         log.Fatal(err)
     }

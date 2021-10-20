@@ -24,7 +24,7 @@ type InputFile struct {
 }
 
 type OutsourceData struct {
-	File []byte   `json:"file"`
+	File []byte  `json:"file"`
 	MetaData       [][]byte   `json:"meta_data"`
 	UserId       string   `json:"user_id"`
 }
@@ -40,6 +40,12 @@ type ArtId struct {
 
 type ArtIds struct {
 	Ids []ArtId `json:"art_ids"`
+}
+
+type Chal struct {
+	C  int    `json:"ck"`
+	K1 []byte `json:"k1"`
+	K2 []byte `json:"k2"`
 }
 
 func NewUser() *User {
