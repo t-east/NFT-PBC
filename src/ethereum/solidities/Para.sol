@@ -14,12 +14,12 @@ contract Params{
     }
 
     //　Para各値の定義
-    mapping(uint256 => PubKey) public PubKeys;
+    mapping(address => PubKey) public PubKeys;
     Para para;
 
     address paraRegisterOwner;
 
-    // コントラクトデプロイ時に，TPAのアドレスを登録
+    // コントラクトデプロイ時に，アドレスを登録
     constructor(address _systemManager){
         paraRegisterOwner = _systemManager;
     }
@@ -34,9 +34,8 @@ contract Params{
     }
 
     // 公開鍵登録
-    function RegisterPubKey(uint256 _userId, string memory _pubkey) public {
-        require(paraRegisterOwner == msg.sender, "You are not a system manager");
-        PubKeys[_userId].pubkey = _pubkey;
+    function RegisterPubKey(string memory _pubkey) public {
+        PubKeys[msg.sender].pubkey = _pubkey;
     }
 
     //パラメータ取得
@@ -45,8 +44,8 @@ contract Params{
     }
 
     //公開鍵取得
-    function GetPubKey(uint256 _pubKeyUser) public view returns(string memory){
-        return PubKeys[_pubKeyUser].pubkey;
+    function GetPubKey(address _owner) public view returns(string memory){
+        return PubKeys[_owner].pubkey;
     }
 
 
