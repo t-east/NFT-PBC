@@ -9,7 +9,17 @@ networks:
   basic:
 
 services:
+  ganache:
+    container_name: gana
+    # 例によって、上記のDockerfileをDockerHubに上げているので下記のように書けます
+    build: ./ganache
+    ports:
+      - 8545:8545
+    networks:
+      - basic
+
   user:
+    container_name: user
     build: .
     tty: true
     command: sh
