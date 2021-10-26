@@ -70,9 +70,11 @@ func SplitSlice(list []byte, size int) ([][]byte, error) {
 			if len(tmp) == 0 {
 				break
 			}
-			result = append(result, tmp[:])
+			r := sha256.Sum256(tmp[:])
+			result = append(result, r[:])
 		} else {
-			result = append(result, tmp[0:splitNum])
+			r := sha256.Sum256(tmp[0:splitNum])
+			result = append(result, r[:])
 			tmp = tmp[splitNum:]
 		}
 	}
