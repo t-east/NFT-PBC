@@ -10,13 +10,15 @@ import (
 func main() {
 	router := gin.Default()
 	user := structure.NewUser()
-	datas := structure.Datas()
 	para := structure.NewParams()
+	uploadFile := structure.File()
 	router.GET("/params", handler.GetPara(para))
-	router.POST("/upload", handler.FilePost(datas))
 	router.GET("/keygen", handler.KeyGen(para, user))
-	router.POST("/user/address", handler.GetAddress(user))
+	router.GET("/user/address", handler.GetAddress())
 	router.POST("/user", handler.UserPost(user))
 	router.GET("/user", handler.UserGet(user))
+	router.GET("/user/register", handler.Register(user))
+	router.POST("/file/metadata", handler.CreateMetaData(uploadFile, para, user))
+	router.POST("/file/upload", handler.UploadFile(uploadFile, para, user))
 	router.Run(":4000")
   }

@@ -23,14 +23,12 @@ type InputFile struct {
 	Name string `json:"name"`
 }
 
-type OutsourceData struct {
-	File []byte  `json:"file"`
-	MetaData       [][]byte   `json:"meta_data"`
-	UserId       string   `json:"user_id"`
-}
-
-type OutsourceDatas struct {
-	Data []OutsourceData `json:"datas"`
+type UploadFile struct {
+	MetaData [][]byte `json:"meta_data"`
+	HashedData [][]byte `json:"hashed_data"`
+	FileName string `json:"name"`
+	SplitCount int `json:"split_count"`
+	Owner string `json:"owner"`
 }
 
 type ArtId struct {
@@ -60,12 +58,8 @@ func (r *ArtIds) AddArtId(artId ArtId) {
     r.Ids = append(r.Ids, artId)
 }
 
-func Datas() *OutsourceDatas {
-    return &OutsourceDatas{}
-}
-
-func NewData() *OutsourceData {
-    return &OutsourceData{}
+func File() *UploadFile {
+    return &UploadFile{}
 }
 
 func NewParams() *Params {
