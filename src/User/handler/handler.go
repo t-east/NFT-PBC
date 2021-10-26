@@ -4,10 +4,13 @@ package handler
 import (
     "net/http"
 	"fmt"
+	"log"
+	"io"
 
     "github.com/gin-gonic/gin"
 	"pairing_test/src/User/structure"
 	"pairing_test/src/ethereum/ethhandler"
+	"pairing_test/src/tool"
 
 	"github.com/Nik-U/pbc"
 )
@@ -40,6 +43,7 @@ func KeyGen(para *structure.Params, user *structure.User) gin.HandlerFunc {
 		pubKey := pairing.NewG1().MulZn(g, privKey)
 		user.PubKey = pubKey.Bytes()
 		user.PrivKey = privKey.Bytes()
+		log.Print(user)
 		//RegisterPubKey(user, アドレス)
         c.JSON(http.StatusOK, user)
     }
@@ -49,13 +53,17 @@ type EthPrivKey struct {
 	PrivKey string `json:"eth_privkey"`
 }
 
-func GetAddress(user *structure.User) gin.HandlerFunc {
+func GetAddress() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Header("Access-Control-Allow-Origin", "*")
 		var requestBody EthPrivKey
-		c.BindJSON(&requestBody)
-		user.Address = ethhandler.GetUserAddress(requestBody.PrivKey).String()
-        c.JSON(http.StatusOK, user)
+		err := c.ShouldBindJSON(&requestBody)
+		if err != nil {
+			log.Println("No extras provided")
+		}
+		log.Print(requestBody.PrivKey)
+		address := ethhandler.GetUserAddress(requestBody.PrivKey).String()
+        c.JSON(http.StatusOK, address)
     }
 }
 
@@ -63,35 +71,90 @@ func GetAddress(user *structure.User) gin.HandlerFunc {
 	//TAにPost 
 //}
 
+type InputFile struct {
+	File []byte `json:"file"`
+	Name string `json:"name"`
+}
+
 // メタデータ生成
-// func (r *User) Upload(inputData InputData) OutsourceData {
-// 	para := GetPara()
-// 	pairing, _ := pbc.NewPairingFromString(para.Pairing)
-// 	u := pairing.NewG1().SetBytes(para.U)
-// 	n := 5
+func CreateMetaData(uploadFile *structure.UploadFile, para *structure.Params, user *structure.User) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		pairing, _ := pbc.NewPairingFromString(para.Pairing)
+		u := pairing.NewG1().SetBytes(para.U)
+		n := 10
 
-// 	privKey := pairing.NewZr().SetBytes(user.PrivKey)
+		privKey := pairing.NewZr().SetBytes(user.PrivKey)
 
-// 	// 署名　sk・H(m)を生成
-// 	inputFile := tool.ReadBinaryFile(inputData.DataPath, binary.BigEndian)
-// 	splitedFile, _ := tool.SplitSlice(inputFile, n)
-// 	var metaData [][]byte
-// 	for i := 0; i < len(splitedFile); i++ {
-// 		m := pairing.NewG1().SetFromHash(splitedFile[i])
+		//ファイル読み込み
+		var inputFileData InputFile
+		err := c.Bind(&inputFileData)
+		if err != nil {
+			c.Status(http.StatusBadRequest)
+		}
+		// 署名　sk・H(m)を生成
+		f, fileHeader, err := c.Request.FormFile("file")
+		if err != nil {
+			c.Status(http.StatusBadRequest)
+		}
+		defer f.Close()
+        inputFile, err := io.ReadAll(f) 
+		splitedFile, _ := tool.SplitSlice(inputFile, n)
+		log.Print(splitedFile)
+		var metaData [][]byte
+		for i := 0; i < len(splitedFile); i++ {
+			m := pairing.NewG1().SetFromHash(splitedFile[i])
 
-// 		mm := tool.GetBinaryBySHA256(m.X().String())
-// 		M := pairing.NewG1().SetFromHash(mm) 
+			mm := tool.GetBinaryBySHA256(m.X().String())
+			M := pairing.NewG1().SetFromHash(mm) 
 
-// 		um := pairing.NewG1().PowBig(u, m.X())
-// 		temp := pairing.NewG1().Mul(um, M)
-// 		meta := pairing.NewG1().MulZn(temp, privKey)
+			um := pairing.NewG1().PowBig(u, m.X())
+			temp := pairing.NewG1().Mul(um, M)
+			meta := pairing.NewG1().MulZn(temp, privKey)
 
-// 		metaData = append(metaData, meta.Bytes())
-// 	}
-// 	outsourceData := Chal{UserId: user.ID, MetaData: metaData, File: inputFile}
-// 	// SendFileToTa(outsourceData)
-// 	return outsourceData
-// }
+			metaData = append(metaData, meta.Bytes())
+		}
+		uploadFile.MetaData = metaData
+		uploadFile.HashedData = splitedFile
+		uploadFile.Owner = user.UserID
+		uploadFile.SplitCount = n
+		uploadFile.FileName = fileHeader.Filename
+
+		// // outsourceData := Chal{UserId: user.ID, MetaData: metaData, File: inputFile}
+		// // SendFileToTa(outsourceData)
+		c.Header("Access-Control-Allow-Origin", "*")
+        c.JSON(http.StatusOK, uploadFile)
+	}
+}
+
+// ファイルの送信
+func UploadFile(uploadFile *structure.UploadFile, para *structure.Params, user *structure.User) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		//ファイル読み込み
+		var inputFileData InputFile
+		err := c.Bind(&inputFileData)
+		if err != nil {
+			c.Status(http.StatusBadRequest)
+		}
+		// 署名　sk・H(m)を生成
+		f, fileHeader, err := c.Request.FormFile("file")
+		if err != nil {
+			c.Status(http.StatusBadRequest)
+		}
+		defer f.Close()
+        inputFile, err := io.ReadAll(f) 
+		splitedFile, _ := tool.SplitSlice(inputFile, n)
+		uploadFile.MetaData = metaData
+		uploadFile.HashedData = splitedFile
+		uploadFile.Owner = user.UserID
+		uploadFile.SplitCount = n
+		uploadFile.FileName = fileHeader.Filename
+
+		
+		c.Header("Access-Control-Allow-Origin", "*")
+        c.JSON(http.StatusOK, uploadFile)
+	}
+}
+
 
 // 監査チャレンジ作成
 // func AuditChallen(para *structure.Params, artIds *structure.ArtIds) []tool.Chal {
@@ -194,10 +257,43 @@ func UserPost(user *structure.User) gin.HandlerFunc {
     }
 }
 
-func FilePost(datas *structure.OutsourceDatas) gin.HandlerFunc {
+type UserRegisterInfo struct {
+	UserID string    `json:"user_id"`
+	Address string    `json:"address"`
+	PbcPubKey string    `json:"pbc_pubkey"`
+}
+
+func Register(user *structure.User) gin.HandlerFunc {
     return func(c *gin.Context) {
-        requestBody := structure.InputFile{}
-        c.Bind(&requestBody)
-        c.Status(http.StatusNoContent)
+		user.UserID = c.Query("user_id")
+		log.Print(c.Query("user_id"))
+		user.Address = c.Query("address")
+		// userをSPに送信
+		c.Header("Access-Control-Allow-Origin", "*")
+        c.JSON(http.StatusOK, user)
     }
+}
+
+func process(w http.ResponseWriter, r *http.Request) {
+
+    // uploaded を参照する
+    items, ok := r.MultipartForm.File["uploaded"]
+    if !ok || len(items) == 0 {
+        // 期待しないアップロードはエラー
+        http.Error(w, "No upload files", http.StatusBadRequest)
+        return
+    }
+    file, err := items[0].Open()
+    if err != nil {
+        http.Error(w, err.Error(), http.StatusInternalServerError)
+        return
+    }
+    defer file.Close()
+
+    data, err := io.ReadAll(file)
+    if err != nil {
+        http.Error(w, err.Error(), http.StatusInternalServerError)
+        return
+    }
+    fmt.Fprintln(w, string(data))
 }
