@@ -6,8 +6,8 @@
 ### Solidity -> Golang
 ```
 cd ethereum/
-solc --optimize --abi ./solidities/FIT.sol -o build --overwrite
-solc --optimize --bin ./solidities/FIT.sol -o build --overwrite
-abigen --abi=./build/FileIndexTable.abi --bin=./build/FileIndexTable.bin --pkg=contracts --out=./contracts/fit.go
+solc --optimize --abi ./solidities/Art.sol -o build --overwrite
+solc --optimize --bin ./solidities/Art.sol -o build --overwrite
+abigen --abi=./build/IndexTable.abi --bin=./build/IndexTable.bin --pkg=contracts --out=./contracts/art.go
 go run create_contract_address.go
 ```
