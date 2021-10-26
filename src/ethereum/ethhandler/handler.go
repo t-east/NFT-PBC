@@ -34,9 +34,12 @@ func ConnectNetWork() (*contracts.Contracts, *ethclient.Client) {
 }
 
 func GetUserAddress(privKey string) common.Address {
-	privateKey, err := crypto.HexToECDSA(privKey)
+    fmt.Println(privKey)
+    PPriv := "a2299babda391e79269699c5adb255d746cd25099ef5a699e9a348c2fea76c1a"
+	privateKey, err := crypto.HexToECDSA(PPriv)
     if err != nil {
-        log.Fatal(err)
+        // log.Fatal(err)
+        log.Fatal("error!!")
     }
     publicKey := privateKey.Public()
     publicKeyECDSA, ok := publicKey.(*ecdsa.PublicKey)
