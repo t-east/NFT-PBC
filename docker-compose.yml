@@ -51,6 +51,6 @@ services:
   #         - 80:80
   #     restart: always 
   #     depends_on:
-  #         - web
+  #         - user
   #     networks:
   #         - basic
