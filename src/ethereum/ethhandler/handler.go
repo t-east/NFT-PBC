@@ -18,11 +18,12 @@ const (
 	// ganacheの起動したときのポートを指定 (8545 か 7545)
 	GANACHE_PORT = "8545"
 	// 先ほど作成したプログラムから取得した。　CONTRACT_ADDRESSを取得
-	CONTRACT_ADDRESS = "4A650123144bb9946c528667cfAea47190488B9a"
+	CONTRACT_ADDRESS = "e5B3cc9306B0E565D481cB2fd674DB0baB3648E4"
+    PPriv = "4bb7d1c7d4aa82cb5a94a869137d62909621e8761e9a4bbb00883ae55ac6a783"
 )
 
 func ConnectNetWork() (*contracts.Contracts, *ethclient.Client) {
-	client, err := ethclient.Dial(fmt.Sprintf("http://127.0.0.1:%s", GANACHE_PORT))
+	client, err := ethclient.Dial(fmt.Sprintf("http://gana:%s", GANACHE_PORT))
 	if err != nil {
 		panic(err)
 	}
@@ -35,7 +36,6 @@ func ConnectNetWork() (*contracts.Contracts, *ethclient.Client) {
 
 func GetUserAddress(privKey string) common.Address {
     fmt.Println(privKey)
-    PPriv := "a2299babda391e79269699c5adb255d746cd25099ef5a699e9a348c2fea76c1a"
 	privateKey, err := crypto.HexToECDSA(PPriv)
     if err != nil {
         // log.Fatal(err)
@@ -50,8 +50,8 @@ func GetUserAddress(privKey string) common.Address {
 	return Address
 }
 
-func AuthUser(client *ethclient.Client, privKey string) *bind.TransactOpts {
-	privateKey, err := crypto.HexToECDSA(privKey)
+func AuthUser(client *ethclient.Client) *bind.TransactOpts {
+	privateKey, err := crypto.HexToECDSA(PPriv)
     if err != nil {
         log.Fatal(err)
     }
@@ -79,20 +79,13 @@ func AuthUser(client *ethclient.Client, privKey string) *bind.TransactOpts {
 	return auth
 }
 
-func Set(auth *bind.TransactOpts, conn *contracts.Contracts,message string) {
-	reply, err := conn.Set(auth, message)
+func GetPara(conn *contracts.Contracts) contracts.IndexTablePara {
+	reply2, err := conn.GetParam(&bind.CallOpts{})
 	if err != nil {
-		fmt.Println(err)
-	}
-	fmt.Print(reply)
-}
-
-func Get(conn *contracts.Contracts) {
-	reply2, err := conn.Get(&bind.CallOpts{})
-	if err != nil {
-		fmt.Println(err)
+		log.Fatal(err)
 	}
 	fmt.Print(reply2)
+    return reply2
 }
 
 func StringToAddress(addressStr string) common.Address {
