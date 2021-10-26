@@ -1,5 +1,9 @@
 package structure
 
+import 	(
+	"pairing_test/src/ethereum/ethhandler"
+)
+
 type Key struct {
 	PubKey []byte `json:"public_key"`
 	PrivKey []byte `json:"private_key"`
@@ -63,7 +67,10 @@ func File() *UploadFile {
 }
 
 func NewParams() *Params {
-    return &Params{}
+	conn, _ := ethhandler.ConnectNetWork()
+	para := ethhandler.GetPara(conn)
+    result := &Params{Pairing: para.Pairing, G: para.G, U: para.U}
+	return result
 }
 
 func (r *User) UserKeyGen() {

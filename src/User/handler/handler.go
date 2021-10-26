@@ -135,19 +135,6 @@ func UploadFile(uploadFile *structure.UploadFile, para *structure.Params, user *
 		if err != nil {
 			c.Status(http.StatusBadRequest)
 		}
-		// 署名　sk・H(m)を生成
-		f, fileHeader, err := c.Request.FormFile("file")
-		if err != nil {
-			c.Status(http.StatusBadRequest)
-		}
-		defer f.Close()
-        inputFile, err := io.ReadAll(f) 
-		splitedFile, _ := tool.SplitSlice(inputFile, n)
-		uploadFile.MetaData = metaData
-		uploadFile.HashedData = splitedFile
-		uploadFile.Owner = user.UserID
-		uploadFile.SplitCount = n
-		uploadFile.FileName = fileHeader.Filename
 
 		
 		c.Header("Access-Control-Allow-Origin", "*")
@@ -268,7 +255,13 @@ func Register(user *structure.User) gin.HandlerFunc {
 		user.UserID = c.Query("user_id")
 		log.Print(c.Query("user_id"))
 		user.Address = c.Query("address")
-		// userをSPに送信
+		conn, client := ethhandler.ConnectNetWork()
+		auth := ethhandler.AuthUser(client)
+		reply, err := conn.RegisterPubKey(auth, string(user.PubKey))
+		log.Print(reply)
+		if err != nil {
+			log.Fatal(err)
+		}
 		c.Header("Access-Control-Allow-Origin", "*")
         c.JSON(http.StatusOK, user)
     }
