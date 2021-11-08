@@ -22,12 +22,8 @@ type Params struct {
 	U       []byte   `json:"u"`
 }
 
-type InputFile struct {
-	File []byte   `json:"file"`
-	Name string `json:"name"`
-}
-
 type UploadFile struct {
+	File []byte   `json:"file"`
 	MetaData [][]byte `json:"meta_data"`
 	HashedData [][]byte `json:"hashed_data"`
 	FileName string `json:"name"`
