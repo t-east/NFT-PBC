@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"log"
 	"io"
+	"encoding/json"
+	"bytes"
 
     "github.com/gin-gonic/gin"
 	"pairing_test/src/User/structure"
@@ -29,9 +31,14 @@ func GetPara(para *structure.Params) gin.HandlerFunc {
 	}
 }
 
-// func RegisterPubKey(user User, address string) {
-// 	// pubKey[address] = user.pubKeyのトランザクションを行う
-// }
+func GetParaFromBN(para *structure.Params) gin.HandlerFunc {
+    return func(c *gin.Context) {
+		conn, _ := ethhandler.ConnectNetWork()
+
+		ethhandler.GetPara(conn)
+		fmt.Print("\nget\n")
+	}
+}
 
 // ユーザ登録
 func KeyGen(para *structure.Params, user *structure.User) gin.HandlerFunc {
@@ -67,9 +74,47 @@ func GetAddress() gin.HandlerFunc {
     }
 }
 
-//func (r *User) SendUserId(){
-	//TAにPost 
-//}
+func UserGet(user *structure.User) gin.HandlerFunc {
+    return func(c *gin.Context) {
+		c.Header("Access-Control-Allow-Origin", "*")
+        c.JSON(http.StatusOK, user)
+    }
+}
+
+type UserInfo struct {
+	UserID string    `json:"user_id"`
+	Address string    `json:"address"`
+}
+
+func UserPost(user *structure.User) gin.HandlerFunc {
+    return func(c *gin.Context) {
+		requestBody := UserInfo{}
+		c.Bind(&requestBody)
+		user.UserID = requestBody.UserID
+		user.Address = requestBody.Address 
+		fmt.Print(requestBody)    
+        //user.SendUserId()
+		c.Header("Access-Control-Allow-Origin", "*")
+        c.JSON(http.StatusOK, requestBody)
+    }
+}
+
+func Register(user *structure.User) gin.HandlerFunc {
+    return func(c *gin.Context) {
+		user.UserID = c.Query("user_id")
+		log.Print(c.Query("user_id"))
+		user.Address = c.Query("address")
+		conn, client := ethhandler.ConnectNetWork()
+		auth := ethhandler.AuthUser(client)
+		reply, err := conn.RegisterPubKey(auth, string(user.PubKey))
+		log.Print(reply)
+		if err != nil {
+			log.Fatal(err)
+		}
+		c.Header("Access-Control-Allow-Origin", "*")
+        c.JSON(http.StatusOK, user)
+    }
+}
 
 type InputFile struct {
 	File []byte `json:"file"`
@@ -135,13 +180,22 @@ func UploadFile(uploadFile *structure.UploadFile, para *structure.Params, user *
 		if err != nil {
 			c.Status(http.StatusBadRequest)
 		}
+		uploadJson, _ := json.Marshal(uploadFile)
+		res, err := http.Post("http://sp:4001/asdf", "application/json", bytes.NewBuffer(uploadJson))
+		defer res.Body.Close()
 
-		
+		if err != nil {
+			log.Fatal("[!] " + err.Error())
+		} else {
+			log.Print("[*] " + res.Status)
+		}
+
+		body, err := io.ReadAll(res.Body)
+
 		c.Header("Access-Control-Allow-Origin", "*")
-        c.JSON(http.StatusOK, uploadFile)
+        c.JSON(http.StatusOK, body)
 	}
 }
-
 
 // 監査チャレンジ作成
 // func AuditChallen(para *structure.Params, artIds *structure.ArtIds) []tool.Chal {
@@ -218,75 +272,3 @@ func UploadFile(uploadFile *structure.UploadFile, para *structure.Params, user *
 // 	}
 // 	return result
 // }
-
-type UserInfo struct {
-	UserID string    `json:"user_id"`
-	Address string    `json:"address"`
-}
-
-func UserGet(user *structure.User) gin.HandlerFunc {
-    return func(c *gin.Context) {
-		c.Header("Access-Control-Allow-Origin", "*")
-        c.JSON(http.StatusOK, user)
-    }
-}
-
-func UserPost(user *structure.User) gin.HandlerFunc {
-    return func(c *gin.Context) {
-		requestBody := UserInfo{}
-		c.Bind(&requestBody)
-		user.UserID = requestBody.UserID
-		user.Address = requestBody.Address 
-		fmt.Print(requestBody)    
-        //user.SendUserId()
-		c.Header("Access-Control-Allow-Origin", "*")
-        c.JSON(http.StatusOK, requestBody)
-    }
-}
-
-type UserRegisterInfo struct {
-	UserID string    `json:"user_id"`
-	Address string    `json:"address"`
-	PbcPubKey string    `json:"pbc_pubkey"`
-}
-
-func Register(user *structure.User) gin.HandlerFunc {
-    return func(c *gin.Context) {
-		user.UserID = c.Query("user_id")
-		log.Print(c.Query("user_id"))
-		user.Address = c.Query("address")
-		conn, client := ethhandler.ConnectNetWork()
-		auth := ethhandler.AuthUser(client)
-		reply, err := conn.RegisterPubKey(auth, string(user.PubKey))
-		log.Print(reply)
-		if err != nil {
-			log.Fatal(err)
-		}
-		c.Header("Access-Control-Allow-Origin", "*")
-        c.JSON(http.StatusOK, user)
-    }
-}
-
-func process(w http.ResponseWriter, r *http.Request) {
-
-    // uploaded を参照する
-    items, ok := r.MultipartForm.File["uploaded"]
-    if !ok || len(items) == 0 {
-        // 期待しないアップロードはエラー
-        http.Error(w, "No upload files", http.StatusBadRequest)
-        return
-    }
-    file, err := items[0].Open()
-    if err != nil {
-        http.Error(w, err.Error(), http.StatusInternalServerError)
-        return
-    }
-    defer file.Close()
-
-    data, err := io.ReadAll(file)
-    if err != nil {
-        http.Error(w, err.Error(), http.StatusInternalServerError)
-        return
-    }
-    fmt.Fprintln(w, string(data))
-}
