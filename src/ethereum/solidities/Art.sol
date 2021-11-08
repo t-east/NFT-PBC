@@ -9,7 +9,7 @@ contract IndexTable {
     bool isRegistered;
     uint[] logIds; // 検証前or検証済みのLogをstore　
   }
-  mapping(uint256 => ArtLog) public ArtLogTable;
+  mapping(string => ArtLog) public ArtLogTable;
 
   address sp;
   address tpa;
@@ -50,68 +50,32 @@ contract IndexTable {
   }
 
   //固有データの登録　=>　fitのIDを返す
-  function registerOriginalData(bytes[] memory _fileData, address _userAddress) public returns(uint256){
+  function registerArt(bytes[] memory _fileData, string memory _artId, address _userAddress) public {
     //トランザクション送信者がSPでないと動かない
     require(sp == msg.sender, "You are not SP");
 
-    // ハッシュファイルからfitIDを生成
-    uint256 fitId = uint256(keccak256(_fileData[0]));
-
-    // 登録ユーザがすでに登録されているか
+    // 作品がすでに登録されているか
     require(
-      ArtLogTable[fitId].owner[_userAddress] == false,
+      ArtLogTable[_artId].owner[_userAddress] == false,
       "This user has already registered as the owner"
     );
     // すでに登録済みのデータであれば不適切
     require(
-      ArtLogTable[fitId].isRegistered == false,
+      ArtLogTable[_artId].isRegistered == false,
       "This user has be already registered as the owner"
     );
 
-    ArtLogTable[fitId].hashedFile = _fileData;
-    ArtLogTable[fitId].owner[_userAddress] = true;
-
-    // ArtLogTable[fitId].firstUser = msg.sender;
-    // ↑固有ユーザの公開鍵を取得できるようにしたい→paraコントラクトからid検索で取得？
-
-    return fitId;
-  }
-  
-  //重複データの登録
-  function registerDedUpData(uint256 _fitId, address _userAddress) public {
-    //トランザクション送信者がSPでないと動かない
-    require(sp == msg.sender, "You are not SP");
-
-    //既に登録されているユーザがいなかったら固有データなのでだめ．
-    require(
-      ArtLogTable[_fitId].isRegistered,
-      "This data has not be registered"
-    );
-    ArtLogTable[_fitId].owner[_userAddress] = true;
+    ArtLogTable[_artId].hashedFile = _fileData;
+    ArtLogTable[_artId].owner[_userAddress] = true;
   }
 
-  // dev用 FITのownerを削除
-  function deleteData(bytes[] memory _fileData, address _userAddress) public {
-
-    // ハッシュファイルからfitIDを生成
-    uint256 fitId = uint256(keccak256(_fileData[0]));
-
-    // 登録ユーザでは無くす
-    ArtLogTable[fitId].owner[_userAddress] = false;
-
-    // 登録されていないデータとして扱う
-    ArtLogTable[fitId].isRegistered = false;
-
-    ArtLogTable[fitId].hashedFile = _fileData;
-  }
-
-  //IndexTableから指定したIDのものを取得
-  function getHashedFile(uint _fitId) public view returns(bytes[] memory){
-    return ArtLogTable[_fitId].hashedFile;
+  //artIdを用いてhashedFileを取得
+  function getHashedFile(string memory _artId) public view returns(bytes[] memory){
+    return ArtLogTable[_artId].hashedFile;
   }
 
   //Logの値からkeyとしてIDを生成，Logsに追加した後IDをreturn
-  function registerLog( bool _result, string memory _chal, string memory _k1, string memory _k2, string memory _myu, string memory _gamma, uint256 _fitId) public returns(uint256){
+  function registerLog( bool _result, string memory _chal, string memory _k1, string memory _k2, string memory _myu, string memory _gamma, uint256 _artId) public returns(uint256){
     
     //トランザクション送信者がTPAでないと動かない
     require(
@@ -120,7 +84,7 @@ contract IndexTable {
     );
 
     // logIdを入力データから生成
-    uint256 logId = uint256(keccak256(abi.encodePacked(_result, _chal, _k1, _k2, _myu, _gamma, _fitId)));
+    uint256 logId = uint256(keccak256(abi.encodePacked(_result, _chal, _k1, _k2, _myu, _gamma, _artId)));
 
     // LogTableに代入
     Logs[logId].result = _result;
@@ -130,7 +94,7 @@ contract IndexTable {
     Logs[logId].myu = _myu;
     Logs[logId].gamma = _gamma;
 
-    //TODO logIdをArtLogTable[_fitId].logIdsにlogId追加するコントラクトをFIT側で定義→ここで実行
+    //TODO logIdをArtLogTable[_artId].logIdsにlogId追加するコントラクトをFIT側で定義→ここで実行
 
     return logId;
   }
@@ -145,8 +109,8 @@ contract IndexTable {
     return LogMemory;
   }
 
-  // 検証済みのLog情報の処理 => FIT.[_fitId].logから該当ログを削除
-  function verifyLog(uint256[] memory _logId, uint256 _fitId) public {
+  // 検証済みのLog情報の処理 => FIT.[_artId].logから該当ログを削除
+  function verifyLog(uint256[] memory _logId, uint256 _artId) public {
   }
 
   // 公開鍵登録
