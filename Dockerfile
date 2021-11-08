@@ -19,6 +19,6 @@ RUN set -ex \
     && make \
     && make install \
     && rm -rf /usr/src/pbc
-COPY app/go.mod app/go.sum ./
+COPY ./go.mod ./go.sum ./
 RUN go mod download
 EXPOSE 4000
