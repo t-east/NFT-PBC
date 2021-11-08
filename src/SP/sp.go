@@ -12,8 +12,6 @@ func main() {
 	para := structure.NewParams()
 	handler.GetPara(para)
 	router.POST("/art", handler.ArtPost(storage))
-	router.POST("/challenge", handler.AuditProofGen(para, storage))
-	router.POST("/user", handler.UserPost(user))
-	router.GET("/user", handler.UserGet(user))
-	router.Run(":4000")
+	// router.POST("/challenge", handler.AuditProofGen(para, storage))
+	router.Run(":4001")
   }
