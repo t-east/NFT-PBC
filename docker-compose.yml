@@ -11,12 +11,13 @@ networks:
 services:
   ganache:
     container_name: gana
-    # 例によって、上記のDockerfileをDockerHubに上げているので下記のように書けます
     build: ./ganache
     ports:
       - 8545:8545
     networks:
       - basic
+    volumes:
+      - ./ganache/ganache-data:/var/ganache
 
   user:
     container_name: user
@@ -30,16 +31,17 @@ services:
     networks:
       - basic
   
-  # sp:
-  #   build: .
-  #   tty: true
-  #   command: sh
-  #   volumes:
-  #     - .:/app
-  #   ports:
-  #     - 4001:4001
-  #   networks:
-  #     - basic
+  sp:
+    container_name: sp
+    build: .
+    tty: true
+    command: sh
+    volumes:
+      - .:/app
+    ports:
+      - 4001:4001
+    networks:
+      - basic
 
   # tpa:
   #   build: .
