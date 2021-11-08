@@ -8,4 +8,4 @@ ENV DATADIR /var/ganache
  
 EXPOSE 8545
  
-ENTRYPOINT ["/bin/sh", "-c", "ganache-cli --host=0.0.0.0 --db=${DATADIR} --mnemonic=\"${MNEMONIC}\" "]
+ENTRYPOINT ["/bin/sh", "-c", "ganache-cli --host=0.0.0.0 --db=${DATADIR} --gasPrice=0 --mnemonic=\"${MNEMONIC}\" "]
