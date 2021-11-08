@@ -13,8 +13,26 @@ type InputData struct {
 	ArtId string `json:"art_id"`
 }
 
+type UploadData struct {
+	File []byte   `json:"file"`
+	MetaData [][]byte `json:"meta_data"`
+	FileName string `json:"name"`
+	Owner string `json:"owner"`
+	ArtId string `json:"art_id"`
+}
+
+type ArtLog struct {
+	HashedData [][]byte `json:"hashed_data"`
+	Owner string `json:"owner"`
+}
+
+type UserRequest struct {
+	ArtLog ArtLog `json:"art_log"`
+	UploadData UploadData `json:"upload_data"`
+}
+
 type Storage struct {
-	Datas []InputData `json:"datas"`
+	Datas []UploadData `json:"datas"`
 }
 
 type Chal struct {
@@ -32,15 +50,11 @@ type OutputProof struct {
 	Proofs []Proof
 }
 
-func Datas() *OutsourceDatas {
-    return &OutsourceDatas{}
-}
-
 func NewStorage() *Storage {
     return &Storage{}
 }
 
-func (r *Storage) AddStorage(data InputData) {
+func (r *Storage) AddStorage(data UploadData) {
     r.Datas = append(r.Datas, data)
 }
 
@@ -50,7 +64,4 @@ func (r *OutputProof) AddProof(proof Proof) {
 
 func NewParams() *Params {
     return &Params{}
-}
-
-func (r *User) UserKeyGen() {
 }
