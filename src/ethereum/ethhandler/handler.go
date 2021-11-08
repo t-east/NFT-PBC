@@ -23,11 +23,16 @@ const (
 )
 
 func ConnectNetWork() (*contracts.Contracts, *ethclient.Client) {
+    err := loadEnv()
+	if err != nil {
+		log.Fatal(err)
+	}
+	contractAffress := os.Getenv("CONTRACT_ADDRESS")
 	client, err := ethclient.Dial(fmt.Sprintf("http://gana:%s", GANACHE_PORT))
 	if err != nil {
 		panic(err)
 	}
-	conn, err := contracts.NewContracts(common.HexToAddress(CONTRACT_ADDRESS), client)
+	conn, err := contracts.NewContracts(common.HexToAddress(contractAffress), client)
 	if err != nil {
 		panic(err)
 	}
@@ -36,6 +41,11 @@ func ConnectNetWork() (*contracts.Contracts, *ethclient.Client) {
 
 func GetUserAddress(privKey string) common.Address {
     fmt.Println(privKey)
+    err := loadEnv()
+	if err != nil {
+		log.Fatal(err)
+	}
+	userPrivKEy := os.Getenv("USER_PRIVATE_KEY")
 	privateKey, err := crypto.HexToECDSA(PPriv)
     if err != nil {
         // log.Fatal(err)
@@ -90,4 +100,10 @@ func GetPara(conn *contracts.Contracts) contracts.IndexTablePara {
 
 func StringToAddress(addressStr string) common.Address {
 	return common.HexToAddress(addressStr)
+}
+
+func loadEnv() error {
+	err := godotenv.Load(".env")
+	
+	return err
 }
