@@ -7,9 +7,9 @@ contract IndexTable {
     mapping(address => bool) owner; // ユーザが所持しているか　
     bytes[] hashedFile;
     bool isRegistered;
-    uint[] logIds; // 検証前or検証済みのLogをstore　
+    bytes[] logIds; // 検証前or検証済みのLogをstore　
   }
-  mapping(string => ArtLog) public ArtLogTable;
+  mapping(bytes => ArtLog) public ArtLogTable;
 
   address sp;
   address tpa;
@@ -17,13 +17,13 @@ contract IndexTable {
   // LogTableの作成
   struct Log {
     bool result;
-    string chal;
-    string k1;
-    string k2;
-    string myu;
-    string gamma;
+    uint chal;
+    bytes k1;
+    bytes k2;
+    bytes myu;
+    bytes gamma;
   }
-  mapping(uint256 => Log) public Logs;
+  mapping(string => Log) public Logs;
 
   // 公開鍵構造体
   struct PubKey {
@@ -50,15 +50,15 @@ contract IndexTable {
   }
 
   //固有データの登録　=>　fitのIDを返す
-  function registerArt(bytes[] memory _fileData, string memory _artId, address _userAddress) public {
+  function registerArt(bytes[] memory _fileData, bytes memory _artId, address _userAddress) public {
     //トランザクション送信者がSPでないと動かない
     require(sp == msg.sender, "You are not SP");
 
     // 作品がすでに登録されているか
-    require(
-      ArtLogTable[_artId].owner[_userAddress] == false,
-      "This user has already registered as the owner"
-    );
+    // require(
+    //   ArtLogTable[_artId].owner[_userAddress] == false,
+    //   "This user has already registered as the owner"
+    // );
     // すでに登録済みのデータであれば不適切
     require(
       ArtLogTable[_artId].isRegistered == false,
@@ -70,12 +70,12 @@ contract IndexTable {
   }
 
   //artIdを用いてhashedFileを取得
-  function getHashedFile(string memory _artId) public view returns(bytes[] memory){
+  function getHashedFile(bytes memory _artId) public view returns(bytes[] memory){
     return ArtLogTable[_artId].hashedFile;
   }
 
   //Logの値からkeyとしてIDを生成，Logsに追加した後IDをreturn
-  function registerLog( bool _result, string memory _chal, string memory _k1, string memory _k2, string memory _myu, string memory _gamma, uint256 _artId) public returns(uint256){
+  function registerLog( bool _result, uint _chal, bytes memory _k1, bytes memory _k2, bytes memory _myu, bytes memory _gamma, bytes memory _artId, string memory _logId) public {
     
     //トランザクション送信者がTPAでないと動かない
     require(
@@ -83,25 +83,20 @@ contract IndexTable {
       "You are not TPA"
     );
 
-    // logIdを入力データから生成
-    uint256 logId = uint256(keccak256(abi.encodePacked(_result, _chal, _k1, _k2, _myu, _gamma, _artId)));
-
     // LogTableに代入
-    Logs[logId].result = _result;
-    Logs[logId].chal = _chal;
-    Logs[logId].k1 = _k1;
-    Logs[logId].k2 = _k2;
-    Logs[logId].myu = _myu;
-    Logs[logId].gamma = _gamma;
+    Logs[_logId].result = _result;
+    Logs[_logId].chal = _chal;
+    Logs[_logId].k1 = _k1;
+    Logs[_logId].k2 = _k2;
+    Logs[_logId].myu = _myu;
+    Logs[_logId].gamma = _gamma;
 
-    //TODO logIdをArtLogTable[_artId].logIdsにlogId追加するコントラクトをFIT側で定義→ここで実行
-
-    return logId;
+    ArtLogTable[_artId].logIds.push(_artId);
   }
 
   //ID配列を入力
   //該当するLogを配列にしてreturn
-  function getLog(uint256[] memory _logId) public view returns(Log[] memory){
+  function getLog(string[] memory _logId) public view returns(Log[] memory){
     Log[] memory LogMemory = new Log[](_logId.length);
     for(uint i = 0; i < _logId.length; i++) {
         LogMemory[i] = Logs[_logId[i]];
