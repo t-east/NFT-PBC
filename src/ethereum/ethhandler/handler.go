@@ -5,7 +5,9 @@ import (
     "context"
     "crypto/ecdsa"
     "log"
-    "math/big"    
+    "os"
+    "math/big"   
+    "github.com/joho/godotenv" 
     "github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
@@ -23,9 +25,9 @@ const (
 )
 
 func ConnectNetWork() (*contracts.Contracts, *ethclient.Client) {
-    err := loadEnv()
+    err := godotenv.Load(fmt.Sprintf("../%s.env", os.Getenv("GO_ENV")))
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("get-go-env-error")
 	}
 	contractAffress := os.Getenv("CONTRACT_ADDRESS")
 	client, err := ethclient.Dial(fmt.Sprintf("http://gana:%s", GANACHE_PORT))
@@ -41,14 +43,13 @@ func ConnectNetWork() (*contracts.Contracts, *ethclient.Client) {
 
 func GetUserAddress(privKey string) common.Address {
     fmt.Println(privKey)
-    err := loadEnv()
+    err := godotenv.Load(fmt.Sprintf("../%s.env", os.Getenv("GO_ENV")))
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("go_env-error")
 	}
-	userPrivKEy := os.Getenv("USER_PRIVATE_KEY")
-	privateKey, err := crypto.HexToECDSA(PPriv)
+	userPrivKeyStr := os.Getenv("USER_PRIVATE_KEY")
+	privateKey, err := crypto.HexToECDSA(userPrivKeyStr)
     if err != nil {
-        // log.Fatal(err)
         log.Fatal("error!!")
     }
     publicKey := privateKey.Public()
@@ -60,10 +61,10 @@ func GetUserAddress(privKey string) common.Address {
 	return Address
 }
 
-func AuthUser(client *ethclient.Client) *bind.TransactOpts {
-	privateKey, err := crypto.HexToECDSA(PPriv)
+func AuthUser(client *ethclient.Client, privKey string) *bind.TransactOpts {
+	privateKey, err := crypto.HexToECDSA(privKey)
     if err != nil {
-        log.Fatal(err)
+        log.Fatal("convert-privKey-error")
     }
     publicKey := privateKey.Public()
     publicKeyECDSA, ok := publicKey.(*ecdsa.PublicKey)
@@ -74,11 +75,11 @@ func AuthUser(client *ethclient.Client) *bind.TransactOpts {
     fromAddress := crypto.PubkeyToAddress(*publicKeyECDSA) 
     nonce, err := client.PendingNonceAt(context.Background(), fromAddress)
     if err != nil {
-        log.Fatal(err)
+        log.Fatal("nonce-error")
     }
     gasPrice, err := client.SuggestGasPrice(context.Background())
     if err != nil {
-        log.Fatal(err)
+        log.Fatal("gas-error")
     }
     auth := bind.NewKeyedTransactor(privateKey)
     auth.Nonce = big.NewInt(int64(nonce))
@@ -98,12 +99,15 @@ func GetPara(conn *contracts.Contracts) contracts.IndexTablePara {
     return reply2
 }
 
-func StringToAddress(addressStr string) common.Address {
-	return common.HexToAddress(addressStr)
+func GetHashData(conn *contracts.Contracts, artId string) [][]byte {
+	reply, err := conn.GetHashedFile(&bind.CallOpts{}, artId)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Print(reply)
+    return reply
 }
 
-func loadEnv() error {
-	err := godotenv.Load(".env")
-	
-	return err
+func StringToAddress(addressStr string) common.Address {
+	return common.HexToAddress(addressStr)
 }

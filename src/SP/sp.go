@@ -8,10 +8,11 @@ import (
 
 func main() {
 	router := gin.Default()
-	storage := structure.NewStorage()
+	storage := &structure.Storage{}
 	para := structure.NewParams()
 	handler.GetPara(para)
 	router.POST("/art", handler.ArtPost(storage))
-	// router.POST("/challenge", handler.AuditProofGen(para, storage))
+	router.GET("/art/:id", handler.ArtGet())
+	router.POST("/proof", handler.AuditProofGen(para, storage))
 	router.Run(":4001")
   }
