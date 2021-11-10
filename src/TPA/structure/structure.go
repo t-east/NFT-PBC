@@ -7,6 +7,7 @@ type Params struct {
 }
 
 type Chal struct {
+	ArtId []byte `json:"art_id`
 	C  int    `json:"ck"`
 	K1 []byte `json:"k1"`
 	K2 []byte `json:"k2"`
@@ -15,6 +16,7 @@ type Chal struct {
 type Proof struct {
 	Myu   []byte `json:"myu"`
 	Gamma []byte `json:"gamma"`
+	ArtId []byte  `json:"art_id"`
 }
 
 type AuditResult struct {
@@ -31,6 +33,17 @@ type ArtId struct {
 type ArtIds struct {
 	Ids []ArtId `json:"art_ids"`
 }
+
+type Log struct {
+    Result bool `json:"result"`
+	C  int    `json:"ck"`
+	K1 []byte `json:"k1"`
+	K2 []byte `json:"k2"`
+    Myu   []byte `json:"myu"`
+	Gamma []byte `json:"gamma"`
+	ArtId []byte  `json:"art_id"`
+	LogId string  `json:"log_id"`
+  }
 
 func NewUser() *User {
     return &User{}

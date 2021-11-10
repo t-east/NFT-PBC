@@ -10,6 +10,8 @@ func main() {
 	router := gin.Default()
 	para := structure.NewParams()
 	handler.GetPara(para)
-	router.POST("/verify", handler.AuditVerify())
+	var Challens &[]structure.Chal{}
+	router.POST("/audit", handler.AuditVerify())
+	router.POST("/chal", handler.PostChallens())
 	router.Run(":4000")
   }

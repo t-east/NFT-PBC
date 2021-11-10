@@ -3,7 +3,7 @@ package handler
 
 import (
     "net/http"
-
+	"log"
     "github.com/gin-gonic/gin"
 	// "encoding/binary"
 	// "reflect"
@@ -12,58 +12,83 @@ import (
 	"github.com/Nik-U/pbc"
 )
 
-func GetPara(para *structure.Params) gin.HandlerFunc {
-    return func(c *gin.Context) {
-		params := pbc.GenerateA(uint32(160), uint32(512))
-		pairing := params.NewPairing()
-		g := pairing.NewG1().Rand()
-		u := pairing.NewG1().Rand()
-		para.Pairing = params.String()
-		para.G = g.Bytes()
-		para.U = u.Bytes()
-		c.JSON(http.StatusOK, para)
+func GetPara(para *structure.Params) {
+	conn, _ := ethhandler.ConnectNetWork()
+	reply := ethhandler.GetPara(conn)
+	para.G = reply.G
+	para.U = reply.U
+	para.Pairing = reply.Pairing
+}
+
+func PostChallens(challens *[]structure.Chal) {
+	return func(c *gin.Context) {
+		challensInput := []structure.Chal{}
+		c.Bind(&challensInput)
+		challens = challensInput
+		log.Print(challens)
+		c.Header("Access-Control-Allow-Origin", "*")
+        c.JSON(http.StatusOK, challens)
 	}
 }
 
 // 監査検証
-func AuditVerify(params tool.Params, proofTByte []tool.ProofT, challen []tool.Chal) ([]tool.Log, int){
-	var log tool.Log
-	fit := tool.InputFIT()
-	var logs []tool.Log
-	errors := 1
-	pairing, _ := pbc.NewPairingFromString(params.Pairing)
-	for l := 0; l < len(fit); l++ {
-		aTable, vTable := tool.HashChallen(len(fit[l].HashedFile), challen[l], pairing)
-		g := pairing.NewG1().SetBytes(params.G)
-		pubKey := pairing.NewG1().SetBytes(params.PubKeys[fit[l].UserID[0]].PubKey)
-		u := pairing.NewG1().SetBytes(params.U)
-		myuT := pairing.NewZr().SetBytes(proofTByte[l].Myu)
-		gammaT := pairing.NewG1().SetBytes(proofTByte[l].Gamma)
-		var MSum *pbc.Element
-		for i := 0; i < challen[l].C; i++ {
-			M := pairing.NewG1().SetBytes(fit[l].HashedFile[aTable[i]])
-			if i == 0 {
-				MSum = pairing.NewG1().PowZn(M, vTable[i])
-			} else {
-				MSum.Mul(MSum, pairing.NewG1().PowZn(M, vTable[i]))
+func AuditVerify(para *structure.Params, challens *[]structure.Chal) ([]tool.Log, int){
+	return func(c *gin.Context) {
+		proofs := []structure.Proof{}
+		logs := []structure.Log{}
+		c.Bind(&proofs)
+		errors := 1
+		pairing, _ := pbc.NewPairingFromString(para.Pairing)
+		for p := 0; p < len(proofs); p++ {
+			var chal structure.Chal
+			for cIndex := 0; cIndex < len(challens); p++ {
+				if challens[cIndex].ArtId == proofs[p].ArtId {
+					chal = challens[cIndex]
+				}
 			}
+			hashedFile := GetHashDataFromBN(proofs[p].ArtId)
+			aTable, vTable := tool.HashChallen(len(hashedFile), chal, pairing)
+			g := pairing.NewG1().SetBytes(para.G)
+			pubKey := pairing.NewG1().SetBytes(para.PubKeys[fit[p].UserID[0]].PubKey)
+			u := pairing.NewG1().SetBytes(para.U)
+			myuT := pairing.NewZr().SetBytes(proofs[p].Myu)
+			gammaT := pairing.NewG1().SetBytes(proofs[p].Gamma)
+			var MSum *pbc.Element
+			for i := 0; i < chal.C; i++ {
+				M := pairing.NewG1().SetBytes(hashedFile[aTable[i]])
+				if i == 0 {
+					MSum = pairing.NewG1().PowZn(M, vTable[i])
+				} else {
+					MSum.Mul(MSum, pairing.NewG1().PowZn(M, vTable[i]))
+				}
+			}
+			uProof := pairing.NewG1().PowZn(u, myuT)
+			right_hand := pairing.NewG1().Mul(uProof, MSum)
+			pairing_left := pairing.NewGT().Pair(gammaT, g)
+			pairing_right := pairing.NewGT().Pair(right_hand, pubKey)
+			var log structure.Log
+			if pairing_left.Equals(pairing_right) {
+				log.Result = 1
+			}else{
+				errors = 0
+				fmt.Print(errors)
+			}
+			log.Myu = proofs[p].Myu
+			log.Gamma = proofs[p].Gamma
+			log.C = chal.C
+			log.K1 = chal.K1
+			log.K2 = chal.K2
+			log.ArtId = proofs[p].ArtId
+			log.LogId := sha1.Sum([]byte( string(log.Myu) + string(log.Gamma) + string(log.C) + string(log.K1) + string(log.K2) + log.ArtId )
+			logs = append(logs, log)
 		}
-		uProof := pairing.NewG1().PowZn(u, myuT)
-		right_hand := pairing.NewG1().Mul(uProof, MSum)
-		pairing_left := pairing.NewGT().Pair(gammaT, g)
-		pairing_right := pairing.NewGT().Pair(right_hand, pubKey)
-		log.Result = 0
-		if pairing_left.Equals(pairing_right) {
-			log.Result = 1
-		}else{
-			errors = 0
-			fmt.Print(errors)
-		}
-		log.Proof = proofTByte[l]
-		log.Challen = challen[l]
-		log.FileId = fit[l].FileId
-		logs = append(logs, log)
 	}
-	return logs, errors
 
+}
+
+// Artログをブロックチェーンから抜き出し
+func GetHashDataFromBN(artId string) [][]byte {
+	conn, _ := ethhandler.ConnectNetWork()	
+	reply := ethhandler.GetHashData(conn, artId)
+	return reply
 }
