@@ -12,6 +12,7 @@ func main() {
 	user := structure.NewUser()
 	para := structure.NewParams()
 	uploadFile := structure.File()
+	artIds := &structure.ArtIds{}
 	router.GET("/params", handler.GetPara(para))
 	router.GET("/keygen", handler.KeyGen(para, user))
 	router.GET("/user/address", handler.GetAddress())
@@ -19,6 +20,7 @@ func main() {
 	router.GET("/user", handler.UserGet(user))
 	router.GET("/user/register", handler.Register(user))
 	router.POST("/file/metadata", handler.CreateMetaData(uploadFile, para, user))
-	router.POST("/file/upload", handler.UploadFile(uploadFile, para, user))
+	router.GET("/file/upload", handler.UploadFile(artIds, uploadFile, para, user))
+	router.GET("/file", handler.ArtGet())
 	router.Run(":4000")
   }

@@ -22,6 +22,20 @@ type Params struct {
 	U       []byte   `json:"u"`
 }
 
+type UploadFileFromUser struct {
+	MetaData [][]byte `json:"meta_data"`
+	HashedData [][]byte `json:"hashed_data"`
+	FileName string `json:"name"`
+	SplitCount int `json:"split_count"`
+	Owner string `json:"owner"`
+	ArtId string `json:"art_id"`
+}
+
+type ArtLog struct {
+	HashedData [][]byte `json:"hashed_data"`
+	Owner string `json:"owner"`
+}
+
 type UploadFile struct {
 	File []byte   `json:"file"`
 	MetaData [][]byte `json:"meta_data"`
@@ -29,6 +43,7 @@ type UploadFile struct {
 	FileName string `json:"name"`
 	SplitCount int `json:"split_count"`
 	Owner string `json:"owner"`
+	ArtId string `json:"art_id"`
 }
 
 type ArtId struct {
@@ -41,6 +56,7 @@ type ArtIds struct {
 }
 
 type Chal struct {
+	ArtId string `json:"art_id`
 	C  int    `json:"ck"`
 	K1 []byte `json:"k1"`
 	K2 []byte `json:"k2"`
