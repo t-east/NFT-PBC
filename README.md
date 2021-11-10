@@ -5,7 +5,7 @@
 ## 環境構築
 ### １，Solidity -> Golang
 ```
-cd ethereum/
+cd src/ethereum/
 solc --optimize --abi ./solidities/Art.sol -o build --overwrite
 solc --optimize --bin ./solidities/Art.sol -o build --overwrite
 abigen --abi=./build/IndexTable.abi --bin=./build/IndexTable.bin --pkg=contracts --out=./contracts/art.go
