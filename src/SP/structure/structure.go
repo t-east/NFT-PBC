@@ -16,9 +16,14 @@ type InputData struct {
 type UploadData struct {
 	File []byte   `json:"file"`
 	MetaData [][]byte `json:"meta_data"`
+	SplitCount int `json:"split_count"`
 	FileName string `json:"name"`
 	Owner string `json:"owner"`
 	ArtId string `json:"art_id"`
+}
+
+type Storage struct {
+	Datas []UploadData `json:"datas"`
 }
 
 type ArtLog struct {
@@ -29,13 +34,26 @@ type ArtLog struct {
 type UserRequest struct {
 	ArtLog ArtLog `json:"art_log"`
 	UploadData UploadData `json:"upload_data"`
+	ArtId string `json:"art_id"`
 }
 
-type Storage struct {
-	Datas []UploadData `json:"datas"`
+type UploadFile struct {
+	File []byte   `json:"file"`
+	MetaData [][]byte `json:"meta_data"`
+	HashedData [][]byte `json:"hashed_data"`
+	FileName string `json:"name"`
+	SplitCount int `json:"split_count"`
+	Owner string `json:"owner"`
+	ArtId string `json:"art_id"`
+}
+
+type HashedResponseToUser struct {
+	ArtId string  `json:"art_id"`
+	HashedFile [][]byte `json:"hashed_file"`
 }
 
 type Chal struct {
+	ArtId string `json:"art_id`
 	C  int    `json:"ck"`
 	K1 []byte `json:"k1"`
 	K2 []byte `json:"k2"`
@@ -44,10 +62,11 @@ type Chal struct {
 type Proof struct {
 	Myu   []byte `json:"myu"`
 	Gamma []byte `json:"gamma"`
+	ArtId string  `json:"art_id"`
 }
 
-type OutputProof struct {
-	Proofs []Proof
+type Proofs struct {
+	Proofs   []Proof `json:"proofs"`
 }
 
 func NewStorage() *Storage {
@@ -58,8 +77,8 @@ func (r *Storage) AddStorage(data UploadData) {
     r.Datas = append(r.Datas, data)
 }
 
-func (r *OutputProof) AddProof(proof Proof) {
-    r.Proofs = append(r.Proofs, proof)
+func (p *Proofs) AddProofs(proof Proof) {
+    p.Proofs = append(p.Proofs, proof)
 }
 
 func NewParams() *Params {
