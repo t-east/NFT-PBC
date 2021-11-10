@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"encoding/binary"
 	"encoding/hex"
+	"crypto/md5"
 	"errors"
 	"fmt"
 	"math/big"
@@ -13,10 +14,10 @@ import (
 	"github.com/Nik-U/pbc"
 )
 
-func HashChallen(n int, challen Chal, pairing *pbc.Pairing) ([]int, []*pbc.Element) {
+func HashChallen(n int, c int, k1, k2 []byte, pairing *pbc.Pairing) ([]int, []*pbc.Element) {
 
-	k1Big := new(big.Int).SetBytes(challen.K1)
-	k2Big := new(big.Int).SetBytes(challen.K2)
+	k1Big := new(big.Int).SetBytes(k1)
+	k2Big := new(big.Int).SetBytes(k2)
 	nBig := big.NewInt(int64(n))
 	var aTable []int
 	var vTable []*pbc.Element
@@ -25,7 +26,7 @@ func HashChallen(n int, challen Chal, pairing *pbc.Pairing) ([]int, []*pbc.Eleme
 		ik1Big := new(big.Int).Mod(new(big.Int).Mul(iBig, k1Big), nBig)
 		aTable = append(aTable, int(ik1Big.Int64()))
 	}
-	for j := 1; j < challen.C+1; j++ {
+	for j := 1; j < c+1; j++ {
 		iBig := big.NewInt(int64(j))
 		ik2Big := pairing.NewZr().SetBig(new(big.Int).Mul(iBig, k2Big))
 		vTable = append(vTable, ik2Big)
@@ -84,6 +85,10 @@ func SplitSlice(list []byte, size int) ([][]byte, error) {
 func GetBinaryBySHA256(s string) []byte {
 	r := sha256.Sum256([]byte(s))
 	return r[:]
+}
+func MD5(s string) string {
+	hash := md5.Sum([]byte(s))
+   return hex.EncodeToString(hash[:])
 }
 
 func ChallenGen(n int, pairing *pbc.Pairing) (int, *pbc.Element, *pbc.Element) {
