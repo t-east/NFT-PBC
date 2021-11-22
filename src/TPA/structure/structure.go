@@ -45,29 +45,6 @@ type Log struct {
 	LogId string  `json:"log_id"`
   }
 
-func NewUser() *User {
-    return &User{}
-}
-
-func NewArtIdList() *ArtIds {
-    return &ArtIds{}
-}
-
-func (r *ArtIds) AddArtId(artId ArtId) {
-    r.Ids = append(r.Ids, artId)
-}
-
-func Datas() *OutsourceDatas {
-    return &OutsourceDatas{}
-}
-
-func NewData() *OutsourceData {
-    return &OutsourceData{}
-}
-
 func NewParams() *Params {
     return &Params{}
-}
-
-func (r *User) UserKeyGen() {
 }

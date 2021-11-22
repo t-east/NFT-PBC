@@ -19,7 +19,7 @@ type UploadData struct {
 	SplitCount int `json:"split_count"`
 	FileName string `json:"name"`
 	Owner string `json:"owner"`
-	ArtId string `json:"art_id"`
+	ArtId []byte `json:"art_id"`
 }
 
 type Storage struct {
