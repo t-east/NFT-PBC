@@ -17,11 +17,7 @@ import (
 
 // ここの２つの変数を修正して実行する
 const (
-	// ganacheの起動したときのポートを指定 (8545 か 7545)
 	GANACHE_PORT = "8545"
-	// 先ほど作成したプログラムから取得した。　CONTRACT_ADDRESSを取得
-	CONTRACT_ADDRESS = "e5B3cc9306B0E565D481cB2fd674DB0baB3648E4"
-    PPriv = "4bb7d1c7d4aa82cb5a94a869137d62909621e8761e9a4bbb00883ae55ac6a783"
 )
 
 func ConnectNetWork() (*contracts.Contracts, *ethclient.Client) {
@@ -99,13 +95,63 @@ func GetPara(conn *contracts.Contracts) contracts.IndexTablePara {
     return reply2
 }
 
-func GetHashData(conn *contracts.Contracts, artId string) [][]byte {
+func GetArtIds(conn *contracts.Contracts) []string {
+	reply2, err := conn.GetParam(&bind.CallOpts{})
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Print(reply2)
+    a := [] string{"Golang", "Java"}
+    return a
+}
+
+func RegisterArt(privKey string, owner string, hashedData [][]byte, artId []byte) error {
+    conn, client := ConnectNetWork()
+	auth := AuthUser(client, privKey)
+	userAddress := StringToAddress(owner)
+	reply, err := conn.RegisterArt(auth, hashedData, artId , userAddress)
+    if err != nil{
+		log.Fatal(err)
+	}
+	log.Print(reply)
+    return err
+}
+
+func SetProof(privKey string, myu []byte, gamma []byte, artId []byte, logId []byte) error {
+    conn, client := ConnectNetWork()
+	auth := AuthUser(client, privKey)
+	reply, err := conn.RegisterAuditProof(auth, myu, gamma, artId, logId)
+    if err != nil{
+		log.Fatal(err)
+	}
+	log.Print(reply)
+    return err
+}
+
+func GetHashData(artId []byte) [][]byte {
+	conn, _ := ConnectNetWork()
 	reply, err := conn.GetHashedFile(&bind.CallOpts{}, artId)
 	if err != nil {
 		log.Fatal(err)
 	}
 	fmt.Print(reply)
     return reply
+}
+
+func GetPubkey(artId []byte) []byte {
+	conn, _ := ConnectNetWork()
+	reply, err := conn.GetPubKey(&bind.CallOpts{}, artId)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Print(reply)
+    return reply
+}
+
+func GetLog() []contracts.IndexTableLogTable {
+	conn, _ := ConnectNetWork()
+	logs, _ := conn.GetLog(&bind.CallOpts{})
+    return logs
 }
 
 func StringToAddress(addressStr string) common.Address {
