@@ -86,9 +86,9 @@ func GetBinaryBySHA256(s string) []byte {
 	r := sha256.Sum256([]byte(s))
 	return r[:]
 }
-func MD5(s string) string {
+func MD5(s string) []byte {
 	hash := md5.Sum([]byte(s))
-   return hex.EncodeToString(hash[:])
+   return []byte(hex.EncodeToString(hash[:]))
 }
 
 func ChallenGen(n int, pairing *pbc.Pairing) (int, *pbc.Element, *pbc.Element) {

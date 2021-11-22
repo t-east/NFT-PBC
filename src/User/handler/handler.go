@@ -99,7 +99,7 @@ func Register(user *structure.User) gin.HandlerFunc {
 		}
 		privKey := os.Getenv("USER_PRIVATE_KEY")
 		auth := ethhandler.AuthUser(client, privKey)
-		_, err = conn.RegisterPubKey(auth, string(user.PubKey))
+		_, err = conn.RegisterPubKey(auth, user.PubKey)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -152,7 +152,7 @@ func CreateMetaData(uploadFile *structure.UploadFile, para *structure.Params, us
 			metaToHash = metaToHash + meta.String()
 		}
 
-		uploadFile.ArtId = tool.MD5(metaToHash)
+		uploadFile.ArtId = string(tool.MD5(metaToHash))
 		uploadFile.MetaData = metaData
 		uploadFile.HashedData = splitedFile
 		uploadFile.Owner = user.UserID
@@ -190,9 +190,8 @@ func UploadFile(artIds *structure.ArtIds, uploadFile *structure.UploadFile, para
 //　ファイルをストレージに保存
 func ArtGet() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		artId := c.Query("id")
-		conn, _ := ethhandler.ConnectNetWork()	
-		hashedFile := ethhandler.GetHashData(conn, artId)
+		artId := c.Query("id")	
+		hashedFile := ethhandler.GetHashData([]byte(artId))
 		c.Header("Access-Control-Allow-Origin", "*")
         c.JSON(http.StatusOK, hashedFile)
 	}
