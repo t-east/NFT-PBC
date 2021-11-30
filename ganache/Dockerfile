@@ -1,4 +1,4 @@
-FROM node:8-alpine
+FROM node:10-alpine
  
 RUN npm install -g ganache-cli
 RUN mkdir -p /var/ganache
