@@ -17,6 +17,36 @@ import (
 	"github.com/Nik-U/pbc"
 )
 
+type ArtLogInteractor struct {
+	repository ArtLogRepository
+}
+func NewArtLogInteractor(artLog ArtLogRepository) entities.ArtLogInteractor {
+	return &ArtLogInteractor{
+		repository: artLog,
+	}
+}
+
+/************************
+        repository
+************************/
+
+type ArtLogRepository interface {
+	Count() (entities.ArtIds, error)
+}
+
+/**********************
+   interactor methods
+***********************/
+
+func (interactor *ArtLogInteractor) Count() (artIds entities.ArtIds, err error) {
+	artlogs, err = interactor.repository.Count()
+	return
+}
+
+
+// そのタ
+
+
 func GetPara(para *structure.Params) {
 	conn, _ := ethhandler.ConnectNetWork()
 	reply := ethhandler.GetPara(conn)
@@ -25,7 +55,7 @@ func GetPara(para *structure.Params) {
 	para.Pairing = reply.Pairing
 }
 
-func Count() gin.HandlerFunc {
+func Count() structure.ArtIds {
 	return func(c *gin.Context) {
 		conn, _ := ethhandler.ConnectNetWork()
 		reply := ethhandler.GetArtIds(conn)

@@ -31,7 +31,7 @@ type ArtId struct {
 }
 
 type ArtIds struct {
-	Ids []ArtId `json:"art_ids"`
+	Ids [][]byte `json:"art_ids"`
 }
 
 type Log struct {
@@ -41,7 +41,7 @@ type Log struct {
 	K2 []byte `json:"k2"`
     Myu   []byte `json:"myu"`
 	Gamma []byte `json:"gamma"`
-	ArtId []byte  `json:"art_id"`
+	ArtId string  `json:"art_id"`
 	LogId string  `json:"log_id"`
   }
 

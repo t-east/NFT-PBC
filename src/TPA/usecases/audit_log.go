@@ -17,6 +17,42 @@ import (
 	"github.com/Nik-U/pbc"
 )
 
+type AuditLogInteractor struct {
+	repository AuditLogRepository
+}
+func NewAuditLogInteractor(auditLog AuditLogRepository) entities.AuditLogInteractor {
+	return &AuditLogInteractor{
+		repository: auditLog,
+	}
+}
+
+/************************
+        repository
+************************/
+
+type AuditLogRepository interface {
+	Challen() ([]entities.AuditLog, error)
+	AuditVeryfy() ([]entities.AuditLog, error)
+}
+
+/**********************
+   interactor methods
+***********************/
+
+func (interactor *AuditLogInteractor) Challen() (auditLogs []entities.AuditLog, err error) {
+	auditLogs, err = interactor.repository.Challen()
+	return
+}
+
+func (interactor *AuditLogInteractor) AuditVerify() (auditLogs []entities.AuditLog, err error) {
+	auditLogs, err = interactor.repository.AuditVerify()
+	return
+}
+
+
+// そのタ
+
+
 func GetPara(para *structure.Params) {
 	conn, _ := ethhandler.ConnectNetWork()
 	reply := ethhandler.GetPara(conn)
@@ -25,7 +61,7 @@ func GetPara(para *structure.Params) {
 	para.Pairing = reply.Pairing
 }
 
-func Count() gin.HandlerFunc {
+func Count() structure.ArtIds {
 	return func(c *gin.Context) {
 		conn, _ := ethhandler.ConnectNetWork()
 		reply := ethhandler.GetArtIds(conn)
