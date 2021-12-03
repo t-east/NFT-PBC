@@ -26,7 +26,7 @@ func main() {
 	setupPrivateKeyStr := os.Getenv("SETUP_PRIVATE_KEY")
 	spAddressStr := os.Getenv("SP_ADDRESS")
 	tpaAddressStr := os.Getenv("TPA_ADDRESS")
-	client, err := ethclient.Dial("http://0.0.0.0:8545")
+	client, err := ethclient.Dial("http://gana:8545")
 	if err != nil {
 		panic(err)
 	}

@@ -95,14 +95,13 @@ func GetPara(conn *contracts.Contracts) contracts.IndexTablePara {
     return reply2
 }
 
-func GetArtIds(conn *contracts.Contracts) []string {
-	reply2, err := conn.GetParam(&bind.CallOpts{})
+func GetArtIds(conn *contracts.Contracts) [][]byte {
+	reply2, err := conn.GetArtIds(&bind.CallOpts{})
 	if err != nil {
 		log.Fatal(err)
 	}
 	fmt.Print(reply2)
-    a := [] string{"Golang", "Java"}
-    return a
+    return reply2
 }
 
 func RegisterArt(privKey string, owner string, hashedData [][]byte, artId []byte) error {
