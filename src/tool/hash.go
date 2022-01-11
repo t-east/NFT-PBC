@@ -21,13 +21,13 @@ func HashChallen(n int, c int, k1, k2 []byte, pairing *pbc.Pairing) ([]int, []*p
 	nBig := big.NewInt(int64(n))
 	var aTable []int
 	var vTable []*pbc.Element
-	for i := 1; i < n+1; i++ {
-		iBig := big.NewInt(int64(i))
+	for i := 0; i < n; i++ {
+		iBig := big.NewInt(int64(i+1))
 		ik1Big := new(big.Int).Mod(new(big.Int).Mul(iBig, k1Big), nBig)
 		aTable = append(aTable, int(ik1Big.Int64()))
 	}
-	for j := 1; j < c+1; j++ {
-		iBig := big.NewInt(int64(j))
+	for j := 0; j < c; j++ {
+		iBig := big.NewInt(int64(j+1))
 		ik2Big := pairing.NewZr().SetBig(new(big.Int).Mul(iBig, k2Big))
 		vTable = append(vTable, ik2Big)
 	}

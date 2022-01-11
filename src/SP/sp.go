@@ -12,7 +12,7 @@ func main() {
 	para := structure.NewParams()
 	handler.GetPara(para)
 	router.POST("/art", handler.ArtPost(storage))
-	router.GET("/art/:id", handler.ArtGet())
-	router.POST("/proof", handler.AuditProofGen(para, storage))
+	// router.GET("/art/:id", handler.ArtGet())
+	router.GET("/proof", handler.AuditProofGen(para, storage))
 	router.Run(":4001")
   }

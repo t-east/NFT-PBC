@@ -80,7 +80,7 @@ func File() *UploadFile {
 
 func NewParams() *Params {
 	conn, _ := ethhandler.ConnectNetWork()
-	para := ethhandler.GetPara(conn)
+	para := ethhandler.GetParam(conn)
     result := &Params{Pairing: para.Pairing, G: para.G, U: para.U}
 	return result
 }

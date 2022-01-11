@@ -22,7 +22,7 @@ import (
 func GetPara(para *structure.Params) gin.HandlerFunc {
     return func(c *gin.Context) {
 		conn, _ := ethhandler.ConnectNetWork()
-		reply := ethhandler.GetPara(conn)
+		reply := ethhandler.GetParam(conn)
 		para.G = reply.G
 		para.U = reply.U
 		para.Pairing = reply.Pairing
@@ -92,19 +92,26 @@ func Register(user *structure.User) gin.HandlerFunc {
     return func(c *gin.Context) {
 		user.UserID = c.Query("user_id")
 		user.Address = c.Query("address")
-		conn, client := ethhandler.ConnectNetWork()
 		err := godotenv.Load(fmt.Sprintf("../%s.env", os.Getenv("GO_ENV")))
 		if err != nil {
 			log.Fatal("get-go-env-error")
 		}
 		privKey := os.Getenv("USER_PRIVATE_KEY")
-		auth := ethhandler.AuthUser(client, privKey)
-		_, err = conn.RegisterPubKey(auth, user.PubKey)
+		err = ethhandler.RegisterPubKey(privKey, user.PubKey)
 		if err != nil {
 			log.Fatal(err)
 		}
 		c.Header("Access-Control-Allow-Origin", "*")
         c.JSON(http.StatusOK, user)
+    }
+}
+
+func GetPubkey() gin.HandlerFunc {
+    return func(c *gin.Context) {
+		userAddress := os.Getenv("USER_ADDRESS")
+		reply := ethhandler.GetPubkey(userAddress)
+		c.Header("Access-Control-Allow-Origin", "*")
+        c.JSON(http.StatusOK, reply)
     }
 }
 
@@ -136,13 +143,18 @@ func CreateMetaData(uploadFile *structure.UploadFile, para *structure.Params, us
 		defer f.Close()
         inputFile, err := io.ReadAll(f) 
 		splitedFile, _ := tool.SplitSlice(inputFile, n)
+		log.Print("splitedFile\n")
+		log.Print(splitedFile)
 		var metaData [][]byte
+		var MData [][]byte
 		metaToHash := ""
 		for i := 0; i < len(splitedFile); i++ {
 			m := pairing.NewG1().SetFromHash(splitedFile[i])
 
 			mm := tool.GetBinaryBySHA256(m.X().String())
-			M := pairing.NewG1().SetFromHash(mm) 
+			log.Print("mm\n")
+			log.Print(mm)
+			M := pairing.NewG1().SetBytes(mm) 
 
 			um := pairing.NewG1().PowBig(u, m.X())
 			temp := pairing.NewG1().Mul(um, M)
@@ -150,12 +162,13 @@ func CreateMetaData(uploadFile *structure.UploadFile, para *structure.Params, us
 
 			metaData = append(metaData, meta.Bytes())
 			metaToHash = metaToHash + meta.String()
+			MData = append(MData, mm)
 		}
 
 		uploadFile.ArtId = string(tool.MD5(metaToHash))
 		uploadFile.MetaData = metaData
-		uploadFile.HashedData = splitedFile
-		uploadFile.Owner = user.UserID
+		uploadFile.HashedData = MData
+		uploadFile.Owner = user.Address
 		uploadFile.SplitCount = n
 		uploadFile.FileName = fileHeader.Filename
 		uploadFile.File = inputFile
@@ -187,15 +200,15 @@ func UploadFile(artIds *structure.ArtIds, uploadFile *structure.UploadFile, para
 	}
 }
 
-//　ファイルをストレージに保存
-func ArtGet() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		artId := c.Query("id")	
-		hashedFile := ethhandler.GetHashData([]byte(artId))
-		c.Header("Access-Control-Allow-Origin", "*")
-        c.JSON(http.StatusOK, hashedFile)
-	}
-}
+// //　ファイルをストレージに保存
+// func ArtGet() gin.HandlerFunc {
+// 	return func(c *gin.Context) {
+// 		artId := c.Query("id")	
+// 		hashedFile := ethhandler.GetArtLog([]byte(artId))
+// 		c.Header("Access-Control-Allow-Origin", "*")
+//         c.JSON(http.StatusOK, hashedFile)
+// 	}
+// }
 
 func AuditChallen(para *structure.Params, artIds *structure.ArtIds) gin.HandlerFunc {
 	return func(c *gin.Context) {

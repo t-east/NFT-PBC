@@ -26,6 +26,7 @@ func main() {
 	setupPrivateKeyStr := os.Getenv("SETUP_PRIVATE_KEY")
 	spAddressStr := os.Getenv("SP_ADDRESS")
 	tpaAddressStr := os.Getenv("TPA_ADDRESS")
+	userAddressStr := os.Getenv("USER_ADDRESS")
 	client, err := ethclient.Dial("http://gana:8545")
 	if err != nil {
 		panic(err)
@@ -36,6 +37,7 @@ func main() {
 		panic(err)
 	}
 
+	userAddress := common.HexToAddress(userAddressStr)
 	spAddress := common.HexToAddress(spAddressStr)
 	tpaAddress := common.HexToAddress(tpaAddressStr)
 	pairing, g, u := SetUp.SetUp()
@@ -66,7 +68,7 @@ func main() {
 	auth.GasLimit = uint64(3000000) // in units
 	auth.GasPrice = big.NewInt(100)
 
-	address, tx, instance, err := contracts.DeployContracts(auth, client, spAddress, tpaAddress, pairing, g, u)
+	address, tx, instance, err := contracts.DeployContracts(auth, client, userAddress, spAddress, tpaAddress, pairing, g, u)
 	if err != nil {
 		panic(err)
 	}

@@ -4,114 +4,133 @@ pragma solidity >=0.7.0 <0.9.0;
 contract IndexTable {
 
   struct ArtLog {
-    address owner; // ユーザが所持しているか　
-    uint32 nftId;
-    bytes[] hashedFile;
-    address provider;
-    bool isRegistered;
-    bytes[] logIds; // 検証前or検証済みのLogをstore　
+    address Owner; // ユーザが所持しているか　
+    uint32 NftId;
+    bytes[] HashedFile;
+    address Provider;
+    bytes LogId; // 検証前or検証済みのLogをstore　
   }
-  mapping(bytes => ArtLog) public ArtLogTable;
-
-  address sp;
-  address tpa;
+  mapping(bytes => ArtLog) public ArtLogs;
 
   // LogTableの作成
-  struct Log {
-    bool result;
-    uint32 chal;
-    bytes k1;
-    bytes k2;
-    bytes myu;
-    bytes gamma;
-    bytes artId;
+  struct AuditLog {
+    bool Result;
+    uint32 Chal;
+    bytes K1;
+    bytes K2;
+    bytes Myu;
+    bytes Gamma;
   }
-  mapping(bytes => Log) public Logs;
+  mapping(bytes => AuditLog) public AuditLogs;
 
-  struct LogTable {
-    Log Log;
-    bytes LogId;
+  struct ArtLogTable {
+    bytes Id;
+    ArtLog Log;
+    bytes PublicKey;
   }
 
-  // 公開鍵構造体
-  struct PubKey {
-      bytes pubkey;
+  struct AuditLogTable {
+    AuditLog Log;
+    bytes Id;
   }
+
+  address Sp;
+  address Tpa;
+  address User;
 
   struct Para {
-      string pairing;
-      bytes u;
-      bytes g;
+    string Pairing;
+    bytes U;
+    bytes G;
   }
 
   //　Para各値の定義
-  mapping(address => PubKey) public PubKeys;
+  mapping(address => bytes) public PubKeys;
 
   bytes[] ArtIds;
   Para para;
 
-  constructor(address _spa, address _tpa, string memory _pairing, bytes memory _g, bytes memory _u) {
-    sp = _spa;
-    tpa = _tpa; 
-    para.pairing = _pairing;
-    para.g = _g;
-    para.u = _u;
+  constructor(address _user, address _spa, address _tpa, string memory _pairing, bytes memory _g, bytes memory _u) {
+    User = _user;
+    Sp = _spa;
+    Tpa = _tpa; 
+    para.Pairing = _pairing;
+    para.G = _g;
+    para.U = _u;
   }
 
   //固有データの登録　=>　fitのIDを返す
-  function registerArt(bytes[] memory _fileData, bytes memory _artId, address _userAddress) public {
+  function SetArtLog(bytes[] memory _fileData, bytes memory _artId, address _userAddress) public {
     //トランザクション送信者がSPでないと動かない
-    require(sp == msg.sender, "You are not SP");
-
-    // 作品がすでに登録されているか
-    // require(
-    //   ArtLogTable[_artId].owner[_userAddress] == false,
-    //   "This user has already registered as the owner"
-    // );
-    // すでに登録済みのデータであれば不適切
-    require(
-      ArtLogTable[_artId].isRegistered == false,
-      "This user has be already registered as the owner"
-    );
-
-    ArtLogTable[_artId].provider = msg.sender;
-    ArtLogTable[_artId].hashedFile = _fileData;
-    ArtLogTable[_artId].owner = _userAddress;
+    require(Sp == msg.sender, "You are not SP");
+    ArtLogs[_artId].Provider = msg.sender;
+    ArtLogs[_artId].HashedFile = _fileData;
+    ArtLogs[_artId].Owner = _userAddress;
     ArtIds.push(_artId);
   }
 
-  //artIdを用いてhashedFileを取得
-  function GetHashedFile(bytes memory _artId) public view returns(bytes[] memory){
-    return ArtLogTable[_artId].hashedFile;
+  //artIdを用いてArtLog取得
+  function GetArtLogs() public view returns(ArtLogTable[] memory){
+    ArtLogTable[] memory ArtLogMemory = new ArtLogTable[](ArtIds.length);
+    for(uint i = 0; i < ArtIds.length; i++) {
+      ArtLogMemory[i].Log = ArtLogs[ArtIds[i]];
+      ArtLogMemory[i].Id = ArtIds[i];
+      ArtLogMemory[i].PublicKey = PubKeys[ArtLogs[ArtIds[i]].Owner];
+    }
+    return ArtLogMemory;
   }
 
-  function SetLogId( uint32 _chal, bytes memory _k1, bytes memory _k2, bytes memory _logId, bytes memory _artId) public {
+   //artIdを用いてArtLog取得
+  function GetArtLog(bytes memory _artId) public view returns(ArtLogTable memory){
+    ArtLogTable memory artLog;
+    artLog.Log = ArtLogs[_artId];
+    artLog.Id = _artId;
+    artLog.PublicKey = PubKeys[ArtLogs[_artId].Owner];
+    return artLog;
+  }
+
+  function GetAuditLogs() public view returns(AuditLogTable[] memory){
+    AuditLogTable[] memory AuditLogMemory = new AuditLogTable[](ArtIds.length);
+    for(uint i = 0; i < ArtIds.length; i++) {
+      AuditLogMemory[i].Log = AuditLogs[ArtLogs[ArtIds[i]].LogId];
+      AuditLogMemory[i].Id = ArtLogs[ArtIds[i]].LogId;
+    }
+    return AuditLogMemory;
+  }
+
+  function GetAuditLog(bytes memory _auditId ) public view returns(AuditLogTable memory){
+    AuditLogTable memory AuditLogMemory;
+    AuditLogMemory.Log = AuditLogs[_auditId];
+    AuditLogMemory.Id = _auditId;
+    return AuditLogMemory;
+  }
+
+  function SetAuditChal( uint32 _chal, bytes memory _k1, bytes memory _k2, bytes memory _logId, bytes memory _artId) public {
     //トランザクション送信者がTPAでないと動かない
     require(
-      tpa == msg.sender,
+      Tpa == msg.sender,
       "You are not TPA"
     );
 
     // LogTableに代入
-    Logs[_logId].chal = _chal;
-    Logs[_logId].k1 = _k1;
-    Logs[_logId].k2 = _k2;
-    Logs[_logId].artId = _artId;
-
-    ArtLogTable[_artId].logIds.push(_logId);
+    AuditLogs[_logId].Chal = _chal;
+    AuditLogs[_logId].K1 = _k1;
+    AuditLogs[_logId].K2 = _k2;
+    ArtLogs[_artId].LogId = _logId;
   }
+
   //Logの値からkeyとしてIDを生成，Logsに追加した後IDをreturn
-  function registerAuditProof( bytes memory _myu, bytes memory _gamma, bytes memory _artId, bytes memory _logId) public {
+  function SetAuditProof( bytes memory _myu, bytes memory _gamma, bytes memory _artId) public {
     
     //トランザクション送信者がTPAでないと動かない
     require(
-      ArtLogTable[_artId].provider == msg.sender,
+      ArtLogs[_artId].Provider == msg.sender,
       "You cannot register Proof"
     );
 
     // LogTableに証明データを記録
-    Logs[_logId].myu = _myu;
-    Logs[_logId].gamma = _gamma;
+    AuditLogs[ArtLogs[_artId].LogId].Myu = _myu;
+    AuditLogs[ArtLogs[_artId].LogId].Gamma = _gamma;
   }
 
     //Logの値からkeyとしてIDを生成，Logsに追加した後IDをreturn
@@ -119,52 +138,30 @@ contract IndexTable {
     
     //トランザクション送信者がTPAでないと動かない
     require(
-      tpa == msg.sender,
+      Tpa == msg.sender,
       "You are not TPA"
     );
 
     // LogTableに証明データを記録
-    Logs[_logId].result = _result;
-  }
-
-  // 検証済みのLog情報の処理 => FIT.[_artId].logから該当ログを削除
-  function verifyLog(uint256[] memory _logId, uint256 _artId) public {
+    AuditLogs[_logId].Result = _result;
   }
 
   // 公開鍵登録
   function RegisterPubKey(bytes memory _pubkey) public {
-      PubKeys[msg.sender].pubkey = _pubkey;
+    require(
+      User == msg.sender,
+      "You are not User"
+    );
+      PubKeys[msg.sender] = _pubkey;
   }
 
-  function GetArtIds() public view returns(bytes[] memory){
-      return ArtIds;
-  }
-
-  function GetLog() public view returns(LogTable[] memory){
-    LogTable[] memory LogMemory = new LogTable[](ArtIds.length);
-    for(uint i = 0; i < ArtIds.length; i++) {
-      for(uint j = 0; j < ArtLogTable[ArtIds[i]].logIds.length; j++) {
-        bytes memory logId;
-        LogTable memory log;
-        logId = ArtLogTable[ArtIds[i]].logIds[j];
-        if (Logs[logId].result == false){
-          log.LogId = logId;
-          log.Log = Logs[logId];
-          LogMemory[i] = log;
-        }
-      }
-    }
-    return LogMemory;
+  //パラメータ取得
+  function GetPubkey(address _address) public view returns(bytes memory){
+      return PubKeys[_address];
   }
 
   //パラメータ取得
   function GetParam() public view returns(Para memory){
       return para;
-  }
-
-  //公開鍵取得
-  function GetPubKey(bytes memory _artId) public view returns(bytes memory){
-    address artOwner = ArtLogTable[_artId].owner;
-    return PubKeys[artOwner].pubkey;
   }
 }

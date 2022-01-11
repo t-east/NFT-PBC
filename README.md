@@ -22,7 +22,8 @@ docker logs gana
 でアドレス情報を参照できる
 ### ３，　１で作成したコントラクトのアドレスを取得
 ```
-cd ../ethereum
+docker exec -it user sh
+cd src/ethereum
 go run create_contract_address.go
 #出力結果を.envのCONTRACT_ADDRESSに追加
 ```
@@ -31,7 +32,8 @@ go run create_contract_address.go
 ```
 docker exec -it user sh
 cd src/User
-go user.go
+cd ../User
+go run user.go
 # userのginサーバが立ち上がる
 
 #同様にsp, tpaもginサーバを立ち上げる

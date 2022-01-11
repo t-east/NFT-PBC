@@ -20,6 +20,7 @@ type UploadData struct {
 	FileName string `json:"name"`
 	Owner string `json:"owner"`
 	ArtId []byte `json:"art_id"`
+	HashedData [][]byte `json:"hashed_data"`
 }
 
 type Storage struct {
@@ -49,7 +50,7 @@ type UploadFile struct {
 
 type HashedResponseToUser struct {
 	ArtId string  `json:"art_id"`
-	HashedFile [][]byte `json:"hashed_file"`
+	HashedFile []string `json:"hashed_file"`
 }
 
 type Chal struct {

@@ -86,7 +86,7 @@ func AuthUser(client *ethclient.Client, privKey string) *bind.TransactOpts {
 	return auth
 }
 
-func GetPara(conn *contracts.Contracts) contracts.IndexTablePara {
+func GetParam(conn *contracts.Contracts) contracts.IndexTablePara {
 	reply2, err := conn.GetParam(&bind.CallOpts{})
 	if err != nil {
 		log.Fatal(err)
@@ -95,8 +95,10 @@ func GetPara(conn *contracts.Contracts) contracts.IndexTablePara {
     return reply2
 }
 
-func GetArtIds(conn *contracts.Contracts) [][]byte {
-	reply2, err := conn.GetArtIds(&bind.CallOpts{})
+func GetPubkey(userAddressStr string) []byte {
+	userAddress := StringToAddress(userAddressStr)
+	conn, _ := ConnectNetWork()
+	reply2, err := conn.GetPubkey(&bind.CallOpts{}, userAddress)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -104,53 +106,102 @@ func GetArtIds(conn *contracts.Contracts) [][]byte {
     return reply2
 }
 
-func RegisterArt(privKey string, owner string, hashedData [][]byte, artId []byte) error {
-    conn, client := ConnectNetWork()
-	auth := AuthUser(client, privKey)
-	userAddress := StringToAddress(owner)
-	reply, err := conn.RegisterArt(auth, hashedData, artId , userAddress)
-    if err != nil{
-		log.Fatal(err)
-	}
-	log.Print(reply)
-    return err
-}
-
-func SetProof(privKey string, myu []byte, gamma []byte, artId []byte, logId []byte) error {
-    conn, client := ConnectNetWork()
-	auth := AuthUser(client, privKey)
-	reply, err := conn.RegisterAuditProof(auth, myu, gamma, artId, logId)
-    if err != nil{
-		log.Fatal(err)
-	}
-	log.Print(reply)
-    return err
-}
-
-func GetHashData(artId []byte) [][]byte {
+func GetArtLogs() []contracts.IndexTableArtLogTable {
 	conn, _ := ConnectNetWork()
-	reply, err := conn.GetHashedFile(&bind.CallOpts{}, artId)
+	reply2, err := conn.GetArtLogs(&bind.CallOpts{})
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Print(reply)
-    return reply
+	fmt.Print(reply2)
+    return reply2
 }
 
-func GetPubkey(artId []byte) []byte {
+func GetArtLog(artId []byte) contracts.IndexTableArtLogTable {
 	conn, _ := ConnectNetWork()
-	reply, err := conn.GetPubKey(&bind.CallOpts{}, artId)
+	reply2, err := conn.GetArtLog(&bind.CallOpts{}, artId)
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Print(reply)
-    return reply
+	fmt.Print(reply2)
+    return reply2
 }
 
-func GetLog() []contracts.IndexTableLogTable {
+func GetAuditLogs() []contracts.IndexTableAuditLogTable {
 	conn, _ := ConnectNetWork()
-	logs, _ := conn.GetLog(&bind.CallOpts{})
-    return logs
+	reply2, err := conn.GetAuditLogs(&bind.CallOpts{})
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Print(reply2)
+    return reply2
+}
+
+func GetAuditLog(artId []byte) contracts.IndexTableAuditLogTable {
+	conn, _ := ConnectNetWork()
+	reply2, err := conn.GetAuditLog(&bind.CallOpts{}, artId)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Print(reply2)
+    return reply2
+}
+
+func SetArtLog(privKey string, owner string, hashedData [][]byte, artId []byte) error {
+    conn, client := ConnectNetWork()
+	auth := AuthUser(client, privKey)
+	err := godotenv.Load(fmt.Sprintf("../%s.env", os.Getenv("GO_ENV")))
+    if err != nil {
+        // .env読めなかった場合の処理
+    }
+	userAddressStr := os.Getenv("USER_ADDRESS")
+	userAddress := common.HexToAddress(userAddressStr)
+	_, err = conn.SetArtLog(auth, hashedData, artId , userAddress)
+    if err != nil{
+		log.Fatal(err)
+	}
+    return err
+}
+
+
+func SetAuditChal(privKey string, chal uint32, k1 []byte, k2 []byte, logId []byte, artId []byte) error {
+	conn, client := ConnectNetWork()
+	auth := AuthUser(client, privKey)
+	_, err := conn.SetAuditChal(auth, chal, k1, k2, logId, artId)
+	if err != nil{
+		log.Fatal(err)
+	}
+	return err
+}
+
+
+func SetAuditProof(privKey string, myu []byte, gamma []byte, artId []byte) error {
+    conn, client := ConnectNetWork()
+	auth := AuthUser(client, privKey)
+	_, err := conn.SetAuditProof(auth, myu, gamma, artId)
+    if err != nil{
+		log.Fatal(err)
+	}
+    return err
+}
+
+func SetAuditResult(privKey string, result bool, artId []byte) error {
+    conn, client := ConnectNetWork()
+	auth := AuthUser(client, privKey)
+	_, err := conn.SetAuditResult(auth, result, artId)
+    if err != nil{
+		log.Fatal(err)
+	}
+    return err
+}
+
+func RegisterPubKey(privKey string, pubkey []byte) error {
+    conn, client := ConnectNetWork()
+	auth := AuthUser(client, privKey)
+	_, err := conn.RegisterPubKey(auth, pubkey)
+    if err != nil{
+		log.Fatal(err)
+	}
+    return err
 }
 
 func StringToAddress(addressStr string) common.Address {
