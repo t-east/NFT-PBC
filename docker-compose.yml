@@ -9,51 +9,71 @@ networks:
   basic:
 
 services:
-  gana:
-    container_name: gana
-    build: ./ganache
-    ports:
-      - 8545:8545
-    networks:
-      - basic
-    volumes:
-      - ./ganache/ganache-data:/var/ganache
+  # gana:
+  #   container_name: gana
+  #   build: ./ganache
+  #   ports:
+  #     - 8545:8545
+  #   networks:
+  #     - basic
+  #   volumes:
+  #     - ./ganache/ganache-data:/var/ganache
 
-  user:
-    container_name: user
-    build: .
-    tty: true
-    command: sh
-    volumes:
-      - .:/app
-    ports:
-      - 4000:4000
-    networks:
-      - basic
+  # user:
+  #   container_name: user
+  #   build: .
+  #   tty: true
+  #   command: sh
+  #   volumes:
+  #     - .:/app
+  #   ports:
+  #     - 4000:4000
+  #   networks:
+  #     - basic
   
-  sp:
-    container_name: sp
-    build: .
-    tty: true
-    command: sh
-    volumes:
-      - .:/app
-    ports:
-      - 4001:4001
-    networks:
-      - basic
+  # sp:
+  #   container_name: sp
+  #   build: .
+  #   tty: true
+  #   command: sh
+  #   volumes:
+  #     - .:/app
+  #   ports:
+  #     - 4001:4001
+  #   networks:
+  #     - basic
 
-  tpa:
-    build: .
-    container_name: tpa
-    tty: true
-    command: sh
-    volumes:
-      - .:/app
+  # tpa:
+  #   build: .
+  #   container_name: tpa
+  #   tty: true
+  #   command: sh
+  #   volumes:
+  #     - .:/app
+  #   ports:
+  #     - 4002:4002
+  #   networks:
+  #     - basic
+
+  mysql:
+    image: mysql:8.0.21
+    container_name: mysql
     ports:
-      - 4002:4002
-    networks:
-      - basic
+    - 3306:3306
+    restart: always
+    volumes:
+      - ./src/SP/mysql/mysql_data:/var/lib/mysql
+      - ./src/SP/mysql/mysql_conf/:/etc/mysql/conf.d
+    environment:
+      MYSQL_DATABASE: sample_db
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_USER: root
+      MYSQL_PASSWORD: password
+    command: mysqld --explicit_defaults_for_timestamp=true
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
   
   # nginx:
   #     container_name: nginx
