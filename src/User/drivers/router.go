@@ -1,4 +1,4 @@
-package driver
+package drivers
 
 import (
 	"database/sql"
@@ -8,7 +8,7 @@ import (
 	"os"
 
 	// blank import for MySQL driver
-	"pairing_test/src/user/interfaces/controllers"
+	// "pairing_test/src/user/interfaces/controllers"
 	"pairing_test/src/user/usecases/interactor"
 	eth "pairing_test/src/user/drivers/ethereum"
 
