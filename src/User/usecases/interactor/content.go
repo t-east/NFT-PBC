@@ -20,7 +20,7 @@ func NewContentInputPort(outputPort port.ContentOutputPort, repository port.Cont
 	}
 }
 
-func (c *ContentHandler) Upload(contentInout *entities.ContentInput) {
+func (c *ContentHandler) Upload(contentInput *entities.ContentInput) {
 	// メタデータ作成
 	content, err := c.Crypt.MakeMetaData(contentInput)
 	if err != nil {
@@ -34,10 +34,10 @@ func (c *ContentHandler) Upload(contentInout *entities.ContentInput) {
 		return
 	}
 	// SPにアップロードする
-	receipt, error := c.OutputPort.UploadSP(content)
+	receipt, err := c.OutputPort.UploadSP(content)
 	if err != nil {
 		c.OutputPort.RenderError(err)
 		return
 	}
-	c.OutputPort.Render(receipt)
+	c.OutputPort.Render(receipt, 201)
 }

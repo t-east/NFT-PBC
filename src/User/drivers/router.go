@@ -29,21 +29,10 @@ func Serve(addr string) {
 		log.Fatalf("Can't get Param from BC. %+v", err)
 	}
 
-	// userのハンドラーを定義
-	user := controllers.User{
-		OutputFactory: presenter.NewUserOutputPort,
-		InputFactory:  interactor.NewUserInputPort,
-		RepoFactory:   gateway.NewUserRepository,
-		Conn:          conn,
-	}
+	// コントローラの準備
+	user := controllers.LoadUserController(conn)
+	content := controllers.LoadContentController(conn, param)
 
-	// TODO: contentのハンドラーを定義
-	// content := controllers.Content{
-	// 	OutputFactory: presenter.NewContentOutputPort,
-	// 	InputFactory:  interactor.NewContentInputPort,
-	// 	RepoFactory:   gateway.NewContentRepository,
-	// 	Conn:          conn,
-	// }
 	
 	http.HandleFunc("/user/", user.GetUserByID)
 	err = http.ListenAndServe(addr, nil)

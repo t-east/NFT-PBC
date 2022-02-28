@@ -5,7 +5,7 @@ import (
 )
 
 type ContentInputPort interface {
-	Upload(file *entities.Content)
+	Upload(file *entities.ContentInput)
 }
 
 type ContentOutputPort interface {
