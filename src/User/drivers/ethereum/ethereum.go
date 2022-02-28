@@ -1,11 +1,9 @@
 package ethereum
 
-type Param struct {
-	Pairing string
-	G       string
-	U       string
-}
+import (
+	"pairing_test/src/user/interfaces/contracts"
+)
 
-func GetParam() (Param, error) {
-	return Param{}, nil
+func GetParam() (contracts.Param, error) {
+	return contracts.Param{}, nil
 }
