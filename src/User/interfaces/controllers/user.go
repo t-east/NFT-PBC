@@ -10,8 +10,6 @@ import (
 type UserController struct {
 	// -> gateway.NewUserRepository
 	RepoFactory func(c *gorm.DB) port.UserRepository
-	// // -> contracts.NewUserContracts
-	// ContractFactory func() port.UserContracts
 	// -> crypt.NewUserCrypt
 	CryptFactory func(p contracts.Param) port.UserCrypt
 	// -> presenter.NewUserOutputPort

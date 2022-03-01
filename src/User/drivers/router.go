@@ -1,15 +1,14 @@
 package drivers
 
 import (
-	"database/sql"
-	"fmt"
+	// "database/sql"
+	// "fmt"
 	"log"
 	"net/http"
-	"os"
+	// "os"
 
 	// blank import for MySQL driver
-	// "pairing_test/src/user/interfaces/controllers"
-	"pairing_test/src/user/usecases/interactor"
+	"pairing_test/src/user/interfaces/controllers"
 	eth "pairing_test/src/user/drivers/ethereum"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -18,7 +17,7 @@ import (
 // Serve はserverを起動させます．
 func Serve(addr string) {
 	// データベース情報を取得
-	conn, err := GetDB()
+	db, err := GetDB()
 	if err != nil {
 		log.Fatalf("Can't get DB. %+v", err)
 	}
@@ -30,11 +29,10 @@ func Serve(addr string) {
 	}
 
 	// コントローラの準備
-	user := controllers.LoadUserController(conn)
-	content := controllers.LoadContentController(conn, param)
+	user := controllers.LoadUserController(db, param)
+	content := controllers.LoadContentController(db, param)
 
 	
-	http.HandleFunc("/user/", user.GetUserByID)
 	err = http.ListenAndServe(addr, nil)
 	if err != nil {
 		log.Fatalf("Listen and serve failed. %+v", err)
