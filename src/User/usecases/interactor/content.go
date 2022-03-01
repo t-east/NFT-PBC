@@ -27,12 +27,20 @@ func (c *ContentHandler) Upload(contentInput *entities.ContentInput) {
 		c.OutputPort.RenderError(err)
 		return
 	}
-	// ArtIDをデータベースに保存
+	// contentIDをデータベースに保存
 	content, err = c.Repository.Create(content)
 	if err != nil {
 		c.OutputPort.RenderError(err)
 		return
 	}
+
+	// TODO: contentIDをブロックチェーンに登録する
+	// err = c.Contracts.Register(content)
+	// if err != nil {
+	// 	c.OutputPort.RenderError(err)
+	// 	return
+	// }
+
 	// SPにアップロードする
 	receipt, err := c.OutputPort.UploadSP(content)
 	if err != nil {

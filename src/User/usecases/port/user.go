@@ -11,6 +11,8 @@ type UserCreate struct {
 
 type UserInputPort interface {
 	Create(UserCreate)
+	KeyGen(int)
+	Get(int)
 }
 
 type UserOutputPort interface {
@@ -20,6 +22,8 @@ type UserOutputPort interface {
 
 type UserRepository interface {
 	Create(*entities.User) (*entities.User, error)
+	Update( *entities.User) (*entities.User, error)
+	FindById(int) (*entities.User, error)
 }
 
 type UserCrypt interface {
