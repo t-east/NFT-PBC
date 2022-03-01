@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"pairing_test/src/user/interfaces/contracts"
 	"pairing_test/src/user/usecases/port"
+
 	"gorm.io/gorm"
 )
 
@@ -19,12 +20,11 @@ type UserController struct {
 		o port.UserOutputPort,
 		u port.UserRepository,
 		cr port.UserCrypt,
-		// co port.UserContracts,
 	) port.UserInputPort
-	Param contracts.Param
-	Conn        *gorm.DB
+	Param      contracts.Param
+	SQLHandler *gorm.DB
 }
 
 func LoadUserController(db *gorm.DB, param contracts.Param) *UserController {
-	return &UserController{Conn: db, Param: param}
+	return &UserController{SQLHandler: db, Param: param}
 }

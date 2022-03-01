@@ -3,8 +3,8 @@ package controllers
 import (
 	"net/http"
 	"pairing_test/src/user/interfaces/contracts"
-	"pairing_test/src/user/interfaces/gateways"
 	"pairing_test/src/user/usecases/port"
+
 	"gorm.io/gorm"
 )
 
@@ -24,11 +24,10 @@ type ContentController struct {
 		cr port.ContentCrypt,
 		// co port.ContentContracts,
 	) port.ContentInputPort
-	Param contracts.Param
-	Conn  gateways.SQLHandler 
+	Param      contracts.Param
+	SQLHandler *gorm.DB
 }
 
 func LoadContentController(db *gorm.DB, param contracts.Param) *ContentController {
-	cc := &ContentController{Conn: db, Param: param}
-	return cc
+	return &ContentController{SQLHandler: db, Param: param}
 }

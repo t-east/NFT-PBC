@@ -2,7 +2,9 @@ package gateways
 
 import (
 	"pairing_test/src/user/domains/entities"
+	"pairing_test/src/user/drivers/rdb"
 	"pairing_test/src/user/usecases/port"
+
 	"gorm.io/gorm"
 )
 
@@ -11,9 +13,9 @@ type UserRepository struct {
 }
 
 func NewUserRepository(conn *gorm.DB) port.UserRepository {
-	sqlHandler := &SQLHandler{Conn: conn}
+	sqlHandler := &rdb.SQLHandler{Conn: conn}
 	userRepository := UserRepository{sqlHandler}
-	return userRepository
+	return &userRepository
 }
 
 func (ur *UserRepository) FindByID(id int) (user *entities.User, err error) {
@@ -25,11 +27,5 @@ func (ur *UserRepository) FindByID(id int) (user *entities.User, err error) {
 
 func (ur *UserRepository) Create(u *entities.User) (err error) {
 	err = ur.SQLHandler.Create(u)
-	return
-}
-
-func (ur *UserRepository) Upload(u *entities.User) () {
-	//TODO;: えらーハンドリング
-	// user, err = ur.SQLHandler.Save(u)
 	return
 }
