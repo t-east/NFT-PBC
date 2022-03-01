@@ -1,33 +1,33 @@
-package gateway
+package controllers
 
 import (
-	"pairing_test/src/user/domains/entities"
-	"pairing_test/src/user/drivers"
-	"pairing_test/src/user/usecases/port"
+	"net/http"
 	"pairing_test/src/user/interfaces/contracts"
+	"pairing_test/src/user/usecases/port"
+	"gorm.io/gorm"
 )
 
 type ContentController struct {
 	// -> gateway.NewContentRepository
 	RepoFactory func(c *gorm.DB) port.ContentRepository
 	// -> contracts.NewContentContracts
-	ContractFactory func(c *gorm.DB) port.ContentContracts
+	ContractFactory func() port.ContentContract
 	// -> crypt.NewContentCrypt
-	CryptFactory func(c *gorm.DB) port.ContentCrypt
+	CryptFactory func(p contracts.Param) port.ContentCrypt
 	// -> presenter.NewContentOutputPort
-	OutputFactory func(w http.ResponseWriter) port.UserOutputPort
+	OutputFactory func(w http.ResponseWriter) port.ContentOutputPort
 	// -> interactor.NewContentInputPort
 	InputFactory func(
 		o port.ContentOutputPort,
 		u port.ContentRepository,
 		cr port.ContentCrypt,
-		co port.ContentContracts
-	) port.UserInputPort
+		// co port.ContentContracts,
+	) port.ContentInputPort
 	Param contracts.Param
 	Conn        *gorm.DB
 }
 
-func LoadContentController(db *gorm.DB, param *contracts.Param) *ContentController {
+func LoadContentController(db *gorm.DB, param contracts.Param) *ContentController {
 	cc := &ContentController{Conn: db, Param: param}
 	return cc
 }
