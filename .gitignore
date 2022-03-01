@@ -1,3 +1,12 @@
+# ethrereum情報
 ganache/ganache-data
-src/.env
 src/ethereum/build
+
+# MySQL情報
+src/sp/mysql/*
+
+#.envファイル
+src/user/.env
+src/sp/.env
+src/tpa/.env
+src/.env
