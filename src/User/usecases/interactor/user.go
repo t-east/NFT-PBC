@@ -38,8 +38,8 @@ func (uc *UserHandler) Create(user *entities.User) {
 	uc.OutputPort.Render(user, 201)
 }
 
-func (uc *UserHandler) Get(id string) {
-	user, err := uc.Repository.FindById(id)
+func (uc *UserHandler) FindByID(id string) {
+	user, err := uc.Repository.FindByID(id)
 	if err != nil {
 		uc.OutputPort.RenderError(err)
 	}
@@ -47,7 +47,7 @@ func (uc *UserHandler) Get(id string) {
 }
 
 func (uc *UserHandler) KeyGen(id string) {
-	user, err := uc.Repository.FindById(id)
+	user, err := uc.Repository.FindByID(id)
 	if err != nil {
 		uc.OutputPort.RenderError(err)
 	}

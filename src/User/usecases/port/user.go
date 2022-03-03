@@ -6,8 +6,8 @@ import (
 
 type UserInputPort interface {
 	Create(*entities.User)
-	KeyGen(int)
-	Get(int)
+	KeyGen(string)
+	FindByID(string)
 }
 
 type UserOutputPort interface {
@@ -18,7 +18,7 @@ type UserOutputPort interface {
 type UserRepository interface {
 	Create(*entities.User) (*entities.User, error)
 	Update( *entities.User) (*entities.User, error)
-	FindById(int) (*entities.User, error)
+	FindByID(string) (*entities.User, error)
 }
 
 type UserCrypt interface {
