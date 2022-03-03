@@ -24,7 +24,6 @@ type ContentCrypt interface {
 	MakeMetaData(contentInput *entities.ContentInput) (*entities.Content, error)
 }
 
-// TODO: コントラクトの実装は後で考える
 type ContentContract interface {
 	Register(string, string) error
 }

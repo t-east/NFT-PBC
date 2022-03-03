@@ -16,34 +16,35 @@ type SQLHandler interface {
 	Where(interface{}, ...interface{}) *entities.User
 }
 
-type UserRepository struct {
+type userRepository struct {
 	Conn *gorm.DB
+	SQLHandler
 }
 
-func NewUserRepository(conn *gorm.DB) *port.UserRepository {
-	return &UserRepository{
+func NewUserRepository(conn *gorm.DB) port.UserRepository {
+	return &userRepository{
 		Conn: conn,
 	}
 }
 
-func (ur *UserRepository) FindByID(id string) (user *entities.User, err error) {
-	userInDB, err := ur.Handler.Find(&user, id)
+func (ur *userRepository) FindByID(id string) (user *entities.User, err error) {
+	userInDB, err := ur.SQLHandler.Find(&user, id)
 	if err != nil {
 		return nil, err
 	}
 	return userInDB, nil
 }
 
-func (ur *UserRepository) Create(u *entities.User) (user *entities.User, err error) {
-	err = ur.Handler.Create(u)
+func (ur *userRepository) Create(u *entities.User) (user *entities.User, err error) {
+	err = ur.SQLHandler.Create(u)
 	if err != nil {
 		return nil, err
 	}
 	return user, nil
 }
 
-func (ur *UserRepository) Update(u *entities.User) (user *entities.User, err error) {
-	err = ur.Handler.Save(u)
+func (ur *userRepository) Update(u *entities.User) (user *entities.User, err error) {
+	err = ur.SQLHandler.Save(u)
 	if err != nil {
 		return nil, err
 	}
