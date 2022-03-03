@@ -5,7 +5,7 @@ import (
 	"log"
 	"os"
 
-	drivers "pairing_test/src/user/drivers"
+	router "pairing_test/src/user/drivers/router"
 	"github.com/joho/godotenv"
 )
 
@@ -16,5 +16,5 @@ func main() {
 	}
 
 	log.Println("Server running...")
-	drivers.Serve(fmt.Sprintf(":%s", os.Getenv("PORT")))
+	router.Serve(fmt.Sprintf(":%s", os.Getenv("PORT")))
 }

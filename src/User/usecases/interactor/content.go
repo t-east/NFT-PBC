@@ -8,15 +8,16 @@ import (
 type ContentHandler struct {
 	OutputPort port.ContentOutputPort
 	Repository port.ContentRepository
-	Crypt  port.ContentCrypt
+	Crypt      port.ContentCrypt
+	ContentSP  port.ContentSP
 }
 
-// NewUserInputPort はUserInputPortを取得します．
-func NewContentInputPort(outputPort port.ContentOutputPort, repository port.ContentRepository, cryptHandler port.ContentCrypt) port.ContentInputPort {
+func NewContentInputPort(outputPort port.ContentOutputPort, repository port.ContentRepository, cryptHandler port.ContentCrypt, spHandler port.ContentSP) port.ContentInputPort {
 	return &ContentHandler{
 		OutputPort: outputPort,
 		Repository: repository,
-		Crypt:  cryptHandler,
+		Crypt:      cryptHandler,
+		ContentSP:  spHandler,
 	}
 }
 
@@ -34,12 +35,8 @@ func (c *ContentHandler) Upload(contentInput *entities.ContentInput) {
 		return
 	}
 
-	// TODO: contentIDをブロックチェーンに登録する
-	// err = c.Contracts.Register(content)
-	// if err != nil {
-	// 	c.OutputPort.RenderError(err)
-	// 	return
-	// }
+
+	// TODO　ブロックチェーンに登録する
 
 	// SPにアップロードする
 	receipt, err := c.OutputPort.UploadSP(content)
@@ -47,5 +44,23 @@ func (c *ContentHandler) Upload(contentInput *entities.ContentInput) {
 		c.OutputPort.RenderError(err)
 		return
 	}
+	c.OutputPort.Render(receipt, 201)
+}
+
+func (c *ContentHandler) FindByID(id string) {
+	// content情報を取得
+	content, err := c.Repository.Find(id)
+	if err != nil {
+		c.OutputPort.RenderError(err)
+		return
+	}
+
+	// SPからコンテント情報を取得
+	receipt, err := c.ContentSP.GetContent(content.Id)
+	if err != nil {
+		c.OutputPort.RenderError(err)
+		return
+	}
+
 	c.OutputPort.Render(receipt, 201)
 }

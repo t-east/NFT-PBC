@@ -12,13 +12,14 @@ type Content struct {
 	ContentName string   `json:"name"`
 	SplitCount  int      `json:"split_count"`
 	Owner       string   `json:"owner"`
-	ArtId       string   `json:"art_id"`
+	Id          string   `json:"id"`
+	UserId      string   `json:"user_id"`
 }
 
 type ContentInput struct {
-	Content     []byte   `json:"content"`
-	ContentName string   `json:"name"`
-	Owner       string   `json:"owner"`
+	Content     []byte `json:"content"`
+	ContentName string `json:"name"`
+	Owner       string `json:"owner"`
 }
 
 type ReceiptFromSP struct {

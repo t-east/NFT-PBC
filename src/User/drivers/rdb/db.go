@@ -1,4 +1,4 @@
-package drdb
+package rdb
 
 import (
 	"fmt"

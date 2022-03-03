@@ -1,7 +1,9 @@
 package controllers
 
 import (
+	"encoding/json"
 	"net/http"
+	"pairing_test/src/user/domains/entities"
 	"pairing_test/src/user/interfaces/contracts"
 	"pairing_test/src/user/usecases/port"
 
@@ -21,10 +23,35 @@ type UserController struct {
 		u port.UserRepository,
 		cr port.UserCrypt,
 	) port.UserInputPort
-	Param      contracts.Param
-	SQLHandler *gorm.DB
+	Param contracts.Param
+	Conn  *gorm.DB
 }
 
 func LoadUserController(db *gorm.DB, param contracts.Param) *UserController {
-	return &UserController{SQLHandler: db, Param: param}
+	return &UserController{Conn: db, Param: param}
+}
+
+func (uc *UserController) Post(w http.ResponseWriter, r *http.Request) {
+	user := &entities.User{}
+	err := json.NewDecoder(r.Body).Decode(&user)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	outputPort := uc.OutputFactory(w)
+	repository := uc.RepoFactory(uc.Conn)
+	crypt := uc.CryptFactory(uc.Param)
+	inputPort := uc.InputFactory(outputPort, repository, crypt)
+	inputPort.Create(user)
+}
+
+func (uc *UserController) Get(w http.ResponseWriter, r *http.Request) {
+	//  TODO: idの取得をちゃんとしたやつにする
+	id := "1"
+
+	outputPort := uc.OutputFactory(w)
+	repository := uc.RepoFactory(uc.Conn)
+	crypt := uc.CryptFactory(uc.Param)
+	inputPort := uc.InputFactory(outputPort, repository, crypt)
+	inputPort.FindByID(id)
 }

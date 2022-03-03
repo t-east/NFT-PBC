@@ -5,7 +5,8 @@ import (
 )
 
 type ContentInputPort interface {
-	Upload(file *entities.ContentInput)
+	Upload(content *entities.ContentInput)
+	FindByID(id string)
 }
 
 type ContentOutputPort interface {
@@ -16,13 +17,18 @@ type ContentOutputPort interface {
 
 type ContentRepository interface {
 	Create(user *entities.Content) (*entities.Content, error)
+	Find(id string) (*entities.Content, error)
 }
 
 type ContentCrypt interface {
 	MakeMetaData(contentInput *entities.ContentInput) (*entities.Content, error)
 }
 
-// TODO: コントラクトの実装は後で考える
 type ContentContract interface {
-	RegisterContentID(string, string) error
+	Register(string, string) error
+}
+
+type ContentSP interface {
+	UploadSP(*entities.Content) (*entities.ReceiptFromSP, error)
+	GetContent(id string) (*entities.ReceiptFromSP, error)
 }

@@ -5,7 +5,7 @@ import (
 )
 
 type ContentInputPort interface {
-	FindByID(id int)
+	FindByID(id string)
 	Create(file *entities.ContentInput)
 }
 
@@ -19,7 +19,7 @@ type ContentOutputPort interface {
 // userのCRUDに対するDB用のポート
 type ContentRepository interface {
 	Create(user *entities.ContentInput) (*entities.Content, error)
-	FindByID(id int) (*entities.Content, error)
+	FindByID(id string) (*entities.Content, error)
 }
 
 // ストレージを利用するport

@@ -11,3 +11,8 @@ type Key struct {
 	PubKey  string `json:"pub_key"`
 	PrivKey string `json:"priv_key"`
 }
+
+type UserCreate struct {
+	Name    string `json:"name"`
+	Address string `json:"address"`
+}

@@ -2,30 +2,51 @@ package gateways
 
 import (
 	"pairing_test/src/user/domains/entities"
-	"pairing_test/src/user/drivers/rdb"
 	"pairing_test/src/user/usecases/port"
 
 	"gorm.io/gorm"
 )
 
-type UserRepository struct {
+type SQLHandler interface {
+	Find(interface{}, ...interface{}) (*entities.User, error)
+	First(interface{}, ...interface{}) (*entities.User, error)
+	Create(interface{}) error
+	Save(interface{}) error
+	Delete(interface{}) *entities.User
+	Where(interface{}, ...interface{}) *entities.User
+}
+
+type userRepository struct {
+	Conn *gorm.DB
 	SQLHandler
 }
 
 func NewUserRepository(conn *gorm.DB) port.UserRepository {
-	sqlHandler := &rdb.SQLHandler{Conn: conn}
-	userRepository := UserRepository{sqlHandler}
-	return &userRepository
-}
-
-func (ur *UserRepository) FindByID(id int) (user *entities.User, err error) {
-	if err = ur.SQLHandler.Find(&user, id).Error; err != nil {
-		return
+	return &userRepository{
+		Conn: conn,
 	}
-	return
 }
 
-func (ur *UserRepository) Create(u *entities.User) (err error) {
+func (ur *userRepository) FindByID(id string) (user *entities.User, err error) {
+	userInDB, err := ur.SQLHandler.Find(&user, id)
+	if err != nil {
+		return nil, err
+	}
+	return userInDB, nil
+}
+
+func (ur *userRepository) Create(u *entities.User) (user *entities.User, err error) {
 	err = ur.SQLHandler.Create(u)
-	return
+	if err != nil {
+		return nil, err
+	}
+	return user, nil
+}
+
+func (ur *userRepository) Update(u *entities.User) (user *entities.User, err error) {
+	err = ur.SQLHandler.Save(u)
+	if err != nil {
+		return nil, err
+	}
+	return user, nil
 }

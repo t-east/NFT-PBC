@@ -26,7 +26,7 @@ type ContentController struct {
 	OutputFactory func(w http.ResponseWriter) port.ContentOutputPort
 	// -> interactor.NewUserInputPort
 	InputFactory func(o port.ContentOutputPort, u port.ContentRepository) port.ContentInputPort
-	// -> gateway.NewUserRepository
+	// -> gateway.NewContentRepository
 	RepoFactory func(c *gorm.DB) port.ContentRepository
 	Conn        *gorm.DB
 }
