@@ -34,8 +34,7 @@ func (c *ContentHandler) Upload(contentInput *entities.ContentInput) {
 		return
 	}
 
-	// TODO: contentIDをブロックチェーンに登録する
-	// err = c.Contracts.Register(content)
+	// err = c.Contracts.Register(content.ID)
 	// if err != nil {
 	// 	c.OutputPort.RenderError(err)
 	// 	return
