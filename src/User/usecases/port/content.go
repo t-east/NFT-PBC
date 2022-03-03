@@ -24,5 +24,5 @@ type ContentCrypt interface {
 
 // TODO: コントラクトの実装は後で考える
 type ContentContract interface {
-	RegisterContentID(string, string) error
+	Register(string, string) error
 }
