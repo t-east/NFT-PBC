@@ -4,13 +4,8 @@ import (
 	entities "pairing_test/src/user/domains/entities"
 )
 
-type UserCreate struct {
-	Name string
-	Address string
-}
-
 type UserInputPort interface {
-	Create(UserCreate)
+	Create(*entities.UserCreate)
 	KeyGen(int)
 	Get(int)
 }
