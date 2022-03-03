@@ -26,7 +26,7 @@ func NewUserRepository(conn *gorm.DB) *port.UserRepository {
 	}
 }
 
-func (ur *UserRepository) FindByID(id int) (user *entities.User, err error) {
+func (ur *UserRepository) FindByID(id string) (user *entities.User, err error) {
 	userInDB, err := ur.Handler.Find(&user, id)
 	if err != nil {
 		return nil, err

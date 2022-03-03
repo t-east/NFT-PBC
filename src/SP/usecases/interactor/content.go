@@ -31,7 +31,7 @@ func (c *ContentHandler) Create(contentInput *entities.ContentInput) {
 	c.OutputPort.Render(content, 201)
 }
 
-func (c *ContentHandler) FindByID(id int) {
+func (c *ContentHandler) FindByID(id string) {
 	user, err := c.Repository.FindByID(id)
 	if err != nil {
 		c.OutputPort.RenderError(err)
