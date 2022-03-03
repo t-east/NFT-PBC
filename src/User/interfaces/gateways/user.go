@@ -19,13 +19,14 @@ func NewUserRepository(conn *gorm.DB) port.UserRepository {
 }
 
 func (ur *UserRepository) FindByID(id int) (user *entities.User, err error) {
-	if err = ur.SQLHandler.Find(&user, id).Error; err != nil {
-		return
+	userInDB, err := ur.SQLHandler.Find(&user, id)
+	if err != nil {
+		return nil, err
 	}
-	return
+	return user, err
 }
 
-func (ur *UserRepository) Create(u *entities.User) (err error) {
-	err = ur.SQLHandler.Create(u)
-	return
+func (ur *UserRepository) Create(u *entities.UserCreate) (*entities.User, error) {
+	user, err = ur.SQLHandler.Create(u)
+	return user, err
 }
